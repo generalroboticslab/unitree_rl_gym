@@ -69,9 +69,9 @@ class G1KnobCfg( G1RobotCfg ):
         }
     
     class env(G1RobotCfg.env):
-        num_observations = 47
-        num_privileged_obs = 50
-        num_actions = 12
+        num_observations = 140
+        num_privileged_obs = 143
+        num_actions = 43
 
 
     class domain_rand(G1RobotCfg.domain_rand):

@@ -92,6 +92,7 @@ class G1KnobRobot(G1Robot):
         # add perceptive inputs if not blind
         # add noise if needed
         if self.add_noise:
+            # import ipdb; ipdb.set_trace()   
             self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec
 
         
