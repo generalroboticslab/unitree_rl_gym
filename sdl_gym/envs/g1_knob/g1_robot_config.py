@@ -1,4 +1,5 @@
 from ..base.base_config import BaseConfig
+from isaacgym import gymtorch, gymapi, gymutil
 
 class G1RobotCfg(BaseConfig):
     class env:
@@ -10,6 +11,9 @@ class G1RobotCfg(BaseConfig):
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
         test = False
+        
+        env_lower = gymapi.Vec3(-1.5, -1.5, 0.)
+        env_upper = gymapi.Vec3(1.5, 1.5, 1.5)
 
     class terrain:
         mesh_type = 'plane' # "heightfield" # none, plane, heightfield or trimesh
@@ -48,8 +52,17 @@ class G1RobotCfg(BaseConfig):
             ang_vel_yaw = [-1, 1]    # min max [rad/s]
             heading = [-3.14, 3.14]
 
-    class init_state:
-        pos = [0.0, 0.0, 1.] # x,y,z [m]
+    class init_state_g1:
+        pos = [0.6, 0.0, 1.] # x,y,z [m]
+        rot = [0.0, 0.0, 1.0, 0.0] # x,y,z,w [quat]
+        lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
+        ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
+        default_joint_angles = { # target angles when action = 0.0
+            "joint_a": 0., 
+            "joint_b": 0.}
+        
+    class init_state_knob:
+        pos = [0.0, 0.0, 0.8] # x,y,z [m]
         rot = [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -67,7 +80,7 @@ class G1RobotCfg(BaseConfig):
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
-    class asset:
+    class asset_g1:
         file = ""
         name = "g1_robot"  # actor name
         foot_name = "None" # name of the feet bodies, used to index body state and contact force tensors
@@ -78,7 +91,7 @@ class G1RobotCfg(BaseConfig):
         fix_base_link = True # fixe the base of the robot
         default_dof_drive_mode = 3 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
-        replace_cylinder_with_capsule = True # replace collision cylinders with capsules, leads to faster/more stable simulation
+        replace_cylinder_with_capsule = False # replace collision cylinders with capsules, leads to faster/more stable simulation
         flip_visual_attachments = True # Some .obj meshes must be flipped from y-up to z-up
         
         density = 0.001
@@ -88,6 +101,20 @@ class G1RobotCfg(BaseConfig):
         max_linear_velocity = 1000.
         armature = 0.
         thickness = 0.01
+    
+    class asset_knob:
+        file = ""
+        name = "g1_knob"  # actor name
+        disable_gravity = False
+        collapse_fixed_joints = False # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
+        fix_base_link = True # fixe the base of the robot
+        default_dof_drive_mode = 0 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
+        replace_cylinder_with_capsule = False # replace collision cylinders with capsules, leads to faster/more stable simulation
+        flip_visual_attachments = False # Some .obj meshes must be flipped from y-up to z-up
+        self_collisions = 0
+        
+        armature = 0.005
+        
 
     class domain_rand:
         randomize_friction = True
@@ -110,9 +137,7 @@ class G1RobotCfg(BaseConfig):
             dof_vel = -0.
             dof_acc = -2.5e-7
             base_height = -0. 
-            feet_air_time =  1.0
             collision = -1.
-            feet_stumble = -0.0 
             action_rate = -0.01
             stand_still = -0.
 

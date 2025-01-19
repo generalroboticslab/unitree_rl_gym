@@ -1,8 +1,7 @@
 from sdl_gym.envs.g1_knob.g1_robot_config import G1RobotCfg, G1RobotCfgPPO
 
 class G1KnobCfg( G1RobotCfg ):
-    class init_state( G1RobotCfg.init_state ):
-        pos = [0.0, 0.0, 0.8] # x,y,z [m]
+    class init_state_g1( G1RobotCfg.init_state_g1 ):
         default_joint_angles = { # = target angles [rad] when action = 0.0
         
         # 6 DOFs of left leg PLUS foot                        
@@ -64,9 +63,11 @@ class G1KnobCfg( G1RobotCfg ):
         
         #    'torso_joint' : 0.
         
-           
-           
         }
+        
+    class init_state_knob( G1RobotCfg.init_state_knob ):
+        pos = [0.0, 0.0, 0.8] # x,y,z [m]
+        
     
     class env(G1RobotCfg.env):
         num_observations = 140
@@ -93,19 +94,33 @@ class G1KnobCfg( G1RobotCfg ):
                      'hip_pitch': 100,
                      'knee': 150,
                      'ankle': 40,
+                     
+                     'waist': 100,
+                     'shoulder': 40,
+                     'elbow': 40,
+                     'wrist': 40,
+                     
+                     'hand': 40,
                      }  # [N*m/rad]
         damping = {  'hip_yaw': 2,
                      'hip_roll': 2,
                      'hip_pitch': 2,
                      'knee': 4,
                      'ankle': 2,
+                     
+                     'waist': 2,
+                     'shoulder': 2,
+                     'elbow': 2,
+                     'wrist': 2,
+                     
+                     'hand': 2,
                      }  # [N*m/rad]  # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.25
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
-    class asset( G1RobotCfg.asset ):
+    class asset_g1( G1RobotCfg.asset_g1 ):
         file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_29dof_with_hand.urdf'
         name = "g1"
         foot_name = "ankle_roll"
@@ -113,6 +128,11 @@ class G1KnobCfg( G1RobotCfg ):
         terminate_after_contacts_on = ["pelvis"]
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
+        
+    class asset_knob (G1RobotCfg.asset_knob):
+        file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/knob/knob.urdf'
+        name = 'knob'
+        default_dof_drive_mode = 0
   
     class rewards( G1RobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
@@ -127,15 +147,11 @@ class G1KnobCfg( G1RobotCfg ):
             base_height = -10.0
             dof_acc = -2.5e-7
             dof_vel = -1e-3
-            feet_air_time = 0.0
             collision = 0.0
             action_rate = -0.01
             dof_pos_limits = -5.0
             alive = 0.15
             hip_pos = -1.0
-            contact_no_vel = -0.2
-            feet_swing_height = -20.0
-            contact = 0.18
 
 class G1KnobCfgPPO( G1RobotCfgPPO ):
     class policy:
