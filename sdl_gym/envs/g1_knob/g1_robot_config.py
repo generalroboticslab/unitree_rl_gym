@@ -4,9 +4,6 @@ from isaacgym import gymtorch, gymapi, gymutil
 class G1RobotCfg(BaseConfig):
     class env:
         num_envs = 4096
-        num_observations = 48
-        num_privileged_obs = None # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
-        num_actions = 43
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
@@ -40,20 +37,9 @@ class G1RobotCfg(BaseConfig):
         # trimesh only:
         slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
 
-    class commands:
-        curriculum = False
-        max_curriculum = 1.
-        num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
-        resampling_time = 10. # time before command are changed[s]
-        heading_command = True # if true: compute ang vel command from heading error
-        class ranges:
-            lin_vel_x = [-1.0, 1.0] # min max [m/s]
-            lin_vel_y = [-1.0, 1.0]   # min max [m/s]
-            ang_vel_yaw = [-1, 1]    # min max [rad/s]
-            heading = [-3.14, 3.14]
 
     class init_state_g1:
-        pos = [0.6, 0.0, 1.] # x,y,z [m]
+        pos = [0.5, 0.0, 0.8] # x,y,z [m]
         rot = [0.0, 0.0, 1.0, 0.0] # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -62,7 +48,7 @@ class G1RobotCfg(BaseConfig):
             "joint_b": 0.}
         
     class init_state_knob:
-        pos = [0.0, 0.0, 0.8] # x,y,z [m]
+        pos = [0.0, 0.1, 1.0] # x,y,z [m]
         rot = [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -128,8 +114,6 @@ class G1RobotCfg(BaseConfig):
     class rewards:
         class scales:
             termination = -0.0
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             orientation = -0.

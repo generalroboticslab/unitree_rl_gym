@@ -4,75 +4,73 @@ class G1KnobCfg( G1RobotCfg ):
     class init_state_g1( G1RobotCfg.init_state_g1 ):
         default_joint_angles = { # = target angles [rad] when action = 0.0
         
-        # 6 DOFs of left leg PLUS foot                        
-        'left_hip_yaw_joint' : 0. ,   
-        'left_hip_roll_joint' : 0,               
-        'left_hip_pitch_joint' : -0.1,         
-        'left_knee_joint' : 0.3,       
-        'left_ankle_pitch_joint' : -0.2,     
-        'left_ankle_roll_joint' : 0,    
-            
+        # 6 DOFs of left leg PLUS foot 
+        'left_hip_pitch_joint' : 0,  # index: 0
+        'left_hip_roll_joint' : 0,      # index: 1
+        'left_hip_yaw_joint' : 0.,      # index: 2
+        'left_knee_joint' : 0.,        # index: 3
+        'left_ankle_pitch_joint' : 0., # index: 4
+        'left_ankle_roll_joint' : 0,    # index: 5
+
         # 6 DOFs of right leg PLUS foot   
-        'right_hip_yaw_joint' : 0., 
-        'right_hip_roll_joint' : 0, 
-        'right_hip_pitch_joint' : -0.1,                                       
-        'right_knee_joint' : 0.3,                                             
-        'right_ankle_pitch_joint': -0.2,                              
-        'right_ankle_roll_joint' : 0,       
-        
+        'right_hip_pitch_joint' : 0, # index: 6
+        'right_hip_roll_joint' : 0,     # index: 7
+        'right_hip_yaw_joint' : 0.,     # index: 8
+        'right_knee_joint' : 0.,       # index: 9
+        'right_ankle_pitch_joint': 0., # index: 10
+        'right_ankle_roll_joint' : 0,   # index: 11
+
         # 3 DOFs of waist
-        'waist_yaw_joint' : 0.,
-        'waist_roll_joint' : 0.,
-        'waist_pitch_joint' : 0.,
-           
+        'waist_yaw_joint' : 0.,         # index: 12
+        'waist_roll_joint' : 0.,        # index: 13
+        'waist_pitch_joint' : 0.,       # index: 14
+
         # 7 DOFs of left arm
-        'left_shoulder_pitch_joint' : 0.,
-        'left_shoulder_roll_joint' : 0.,
-        'left_shoulder_yaw_joint' : 0.,
-        'left_elbow_joint' : 0.,
-        'left_wrist_roll_joint' : 0.,
-        'left_wrist_pitch_joint' : 0.,
-        'left_wrist_yaw_joint' : 0.,
-              
+        'left_shoulder_pitch_joint' : 0., # index: 15
+        'left_shoulder_roll_joint' : 0.,  # index: 16
+        'left_shoulder_yaw_joint' : 0.,   # index: 17
+        'left_elbow_joint' : 0.,          # index: 18
+        'left_wrist_roll_joint' : 0.,     # index: 19
+        'left_wrist_pitch_joint' : 0.,    # index: 20
+        'left_wrist_yaw_joint' : 0.,      # index: 21
+
         # 7 DOFs of left hand
-        'left_hand_thumb_0_joint' : 0.,
-        'left_hand_thumb_1_joint' : 0.,
-        'left_hand_thumb_2_joint' : 0.,
-        'left_hand_middle_0_joint' : 0.,
-        'left_hand_middle_1_joint' : 0.,
-        'left_hand_index_0_joint' : 0.,
-        'left_hand_index_1_joint' : 0.,
-        
+        'left_hand_index_0_joint' : 0.,   # index: 22
+        'left_hand_index_1_joint' : 0.,   # index: 23
+        'left_hand_middle_0_joint' : 0.,  # index: 24
+        'left_hand_middle_1_joint' : 0.,  # index: 25
+        'left_hand_thumb_0_joint' : 0.,   # index: 26
+        'left_hand_thumb_1_joint' : 0.,   # index: 27
+        'left_hand_thumb_2_joint' : 0.,   # index: 28
+
         # 7 DOFs of right arm
-        'right_shoulder_pitch_joint' : 0.,
-        'right_shoulder_roll_joint' : 0.,
-        'right_shoulder_yaw_joint' : 0.,
-        'right_elbow_joint' : 0.,
-        'right_wrist_roll_joint' : 0.,
-        'right_wrist_pitch_joint' : 0.,
-        'right_wrist_yaw_joint' : 0.,
-        
+        'right_shoulder_pitch_joint' : 0., # index: 29
+        'right_shoulder_roll_joint' : 0.,  # index: 30
+        'right_shoulder_yaw_joint' : 0.,   # index: 31
+        'right_elbow_joint' : 0.,          # index: 32
+        'right_wrist_roll_joint' : 0.,     # index: 33
+        'right_wrist_pitch_joint' : 0.,    # index: 34
+        'right_wrist_yaw_joint' : 0.,      # index: 35
+
         # 7 DOFs of right hand
-        'right_hand_thumb_0_joint' : 0.,
-        'right_hand_thumb_1_joint' : 0.,
-        'right_hand_thumb_2_joint' : 0.,
-        'right_hand_middle_0_joint' : 0.,
-        'right_hand_middle_1_joint' : 0.,
-        'right_hand_index_0_joint' : 0.,
-        'right_hand_index_1_joint' : 0.,
-        
-        #    'torso_joint' : 0.
-        
+        'right_hand_index_0_joint' : 0.,   # index: 36
+        'right_hand_index_1_joint' : 0.,   # index: 37
+        'right_hand_middle_0_joint' : 0.,  # index: 38
+        'right_hand_middle_1_joint' : 0.,  # index: 39
+        'right_hand_thumb_0_joint' : 0.,   # index: 40
+        'right_hand_thumb_1_joint' : 0.,   # index: 41
+        'right_hand_thumb_2_joint' : 0.,   # index: 42
+
         }
         
     class init_state_knob( G1RobotCfg.init_state_knob ):
-        pos = [0.0, 0.0, 0.8] # x,y,z [m]
+        pass
         
     
     class env(G1RobotCfg.env):
-        num_observations = 140
-        num_privileged_obs = 143
-        num_actions = 43
+        num_observations = 108
+        num_privileged_obs = 111
+        num_actions = 14
 
 
     class domain_rand(G1RobotCfg.domain_rand):
@@ -139,8 +137,6 @@ class G1KnobCfg( G1RobotCfg ):
         base_height_target = 0.78
         
         class scales( G1RobotCfg.rewards.scales ):
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             orientation = -1.0
@@ -165,9 +161,10 @@ class G1KnobCfgPPO( G1RobotCfgPPO ):
         rnn_num_layers = 1
         
     class algorithm( G1RobotCfgPPO.algorithm ):
-        entropy_coef = 0.01
+        pass
     class runner( G1RobotCfgPPO.runner ):
-        policy_class_name = "ActorCriticRecurrent"
+        # policy_class_name = "ActorCriticRecurrent"
+        policy_class_name = "ActorCritic"
         max_iterations = 10000
         run_name = ''
         experiment_name = 'g1_knob'
