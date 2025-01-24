@@ -13,6 +13,7 @@ from typing import Tuple, Dict
 
 from sdl_gym import SDL_GYM_ROOT_DIR
 from sdl_gym.envs.base.base_task import BaseTask
+from sdl_gym.utils.publisher import DataPublisher, DataReceiver
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict
@@ -38,6 +39,16 @@ class G1Robot(BaseTask):
         self.debug_viz = False
         self.init_done = False
         self._parse_cfg(self.cfg)
+        
+        
+        # plotJuggler related
+        self.enable_udp: bool = self.cfg.env.dataPublisher_enable
+        if self.enable_udp:  
+            self.data_publisher = DataPublisher(enable=self.cfg.env.dataPublisher_enable, target_url=self.cfg.env.target_url)
+            self.data_root_label = self.cfg.env.data_root_label
+        # plotJuggler related
+        
+        
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
 
         if not self.headless:
@@ -46,6 +57,7 @@ class G1Robot(BaseTask):
         self._prepare_reward_function()
         self.init_done = True
 
+        self.reset_idx(torch.arange(self.num_envs, device=self.device))
 
     def create_sim(self):
         """ Creates simulation, terrain and evironments
@@ -54,7 +66,7 @@ class G1Robot(BaseTask):
         self.sim = self.gym.create_sim(self.sim_device_id, self.graphics_device_id, self.physics_engine, self.sim_params)
         self._create_ground_plane()
         self._create_envs()
-        
+        self._init_data()
 
     def set_camera(self, position, lookat):
         """ Set camera position and direction

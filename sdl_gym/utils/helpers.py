@@ -159,6 +159,58 @@ def export_policy_as_jit(actor_critic, path):
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path)
 
+####################### AMONG DEVELOPMENT HELPER FUNCTIONS #######################
+def print_g1_dof_index(gym, env_handle, actor_handle_g1):
+    print(f"'left_hip_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hip_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hip_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hip_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hip_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hip_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_knee_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_knee_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_ankle_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_ankle_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_ankle_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_ankle_roll_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'right_hip_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hip_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hip_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hip_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hip_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hip_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_knee_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_knee_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_ankle_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_ankle_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_ankle_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_ankle_roll_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'waist_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'waist_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'waist_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'waist_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'waist_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'waist_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'left_shoulder_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_shoulder_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_shoulder_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_shoulder_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_shoulder_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_shoulder_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_elbow_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_elbow_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_wrist_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_wrist_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_wrist_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_wrist_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_wrist_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_wrist_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'left_hand_thumb_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_thumb_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_thumb_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_thumb_1_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_thumb_2_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_thumb_2_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_middle_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_middle_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_middle_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_middle_1_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_index_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_index_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'left_hand_index_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'left_hand_index_1_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'right_shoulder_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_shoulder_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_shoulder_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_shoulder_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_shoulder_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_shoulder_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_elbow_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_elbow_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_wrist_roll_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_wrist_roll_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_wrist_pitch_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_wrist_pitch_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_wrist_yaw_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_wrist_yaw_joint', gymapi.DOMAIN_SIM)%44}")
+
+    print(f"'right_hand_thumb_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_thumb_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_thumb_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_thumb_1_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_thumb_2_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_thumb_2_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_middle_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_middle_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_middle_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_middle_1_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_index_0_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_index_0_joint', gymapi.DOMAIN_SIM)%44}")
+    print(f"'right_hand_index_1_joint': {gym.find_actor_dof_index(env_handle, actor_handle_g1, 'right_hand_index_1_joint', gymapi.DOMAIN_SIM)%44}")
+
 
 class PolicyExporterLSTM(torch.nn.Module):
     def __init__(self, actor_critic):

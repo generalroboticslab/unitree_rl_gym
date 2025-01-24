@@ -68,9 +68,9 @@ class G1KnobCfg( G1RobotCfg ):
         
     
     class env(G1RobotCfg.env):
-        num_observations = 108
-        num_privileged_obs = 111
-        num_actions = 14
+        num_observations = 107
+        num_privileged_obs = 110
+        num_actions = 13 # 6 + 7 (6 for the hand pos&rot, 7 for the fingers' DOFs)
 
 
     class domain_rand(G1RobotCfg.domain_rand):
@@ -85,7 +85,7 @@ class G1KnobCfg( G1RobotCfg ):
 
     class control( G1RobotCfg.control ):
         # PD Drive parameters:
-        control_type = 'P'
+        control_type = 'P' # P: position, V: velocity, T: torques
           # PD Drive parameters:
         stiffness = {'hip_yaw': 100,
                      'hip_roll': 100,
@@ -126,6 +126,8 @@ class G1KnobCfg( G1RobotCfg ):
         terminate_after_contacts_on = ["pelvis"]
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
+        use_mesh_materials = True
+        default_dof_drive_mode = 1 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
         
     class asset_knob (G1RobotCfg.asset_knob):
         file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/knob/knob.urdf'
@@ -140,6 +142,7 @@ class G1KnobCfg( G1RobotCfg ):
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             orientation = -1.0
+            torques = -0.00001
             base_height = -10.0
             dof_acc = -2.5e-7
             dof_vel = -1e-3

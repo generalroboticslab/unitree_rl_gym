@@ -9,6 +9,10 @@ class G1RobotCfg(BaseConfig):
         episode_length_s = 20 # episode length in seconds
         test = False
         
+        dataPublisher_enable = True
+        target_url = 'udp://localhost:9876'
+        data_root_label = 'sim'
+        
         env_lower = gymapi.Vec3(-1.5, -1.5, 0.)
         env_upper = gymapi.Vec3(1.5, 1.5, 1.5)
 
@@ -57,7 +61,6 @@ class G1RobotCfg(BaseConfig):
             "joint_b": 0.}
 
     class control:
-        control_type = 'P' # P: position, V: velocity, T: torques
         # PD Drive parameters:
         stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]
         damping = {'joint_a': 1.0, 'joint_b': 1.5}     # [N*m*s/rad]
@@ -114,16 +117,6 @@ class G1RobotCfg(BaseConfig):
     class rewards:
         class scales:
             termination = -0.0
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
-            orientation = -0.
-            torques = -0.00001
-            dof_vel = -0.
-            dof_acc = -2.5e-7
-            base_height = -0. 
-            collision = -1.
-            action_rate = -0.01
-            stand_still = -0.
 
         only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
@@ -141,7 +134,7 @@ class G1RobotCfg(BaseConfig):
             dof_vel = 0.05
             height_measurements = 5.0
         clip_observations = 100.
-        clip_actions = 100.
+        clip_actions = 100. #### Should be 1 ?? ####
 
     class noise:
         add_noise = True
@@ -159,8 +152,8 @@ class G1RobotCfg(BaseConfig):
         ref_env = 0
         # pos = [10, 0, 6]  # [m]
         # lookat = [11., 5, 3.]  # [m]
-        pos = [10, 0, 3]  # [m]
-        lookat = [11., 5, 2.]  # [m]
+        pos = [1, 0.6, 1.2]  # [m]
+        lookat = [-0.1, -0.2, 0.5]  # [m]
 
     class sim:
         dt =  0.005
