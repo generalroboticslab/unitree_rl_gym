@@ -93,7 +93,7 @@ class G1KnobCfg( G1RobotCfg ):
                      'knee': 150,
                      'ankle': 40,
                      
-                     'waist': 100,
+                     'waist': 5000000,
                      'shoulder': 40,
                      'elbow': 40,
                      'wrist': 40,
@@ -106,7 +106,7 @@ class G1KnobCfg( G1RobotCfg ):
                      'knee': 4,
                      'ankle': 2,
                      
-                     'waist': 2,
+                     'waist': 200,
                      'shoulder': 2,
                      'elbow': 2,
                      'wrist': 2,

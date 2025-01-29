@@ -35,6 +35,7 @@ import math
 import torch
 
 from . import torch_jit_utils as torch_utils
+from isaacgym.torch_utils import *
 
 
 
@@ -45,11 +46,11 @@ def compute_dof_pos_target(num_envs,
                            jacobian,
                            ctrl_target_hand_pos,
                            ctrl_target_hand_quat,
+                           num_of_ctrl_target_dof_pos,
                            device):
     """Compute Franka DOF position target to move fingertips towards target pose."""
 
-    # ctrl_target_dof_pos = torch.zeros((num_envs, 7), device=device)
-    ctrl_target_dof_pos = torch.zeros((num_envs, 10), device=device)
+    ctrl_target_dof_pos = torch.zeros((num_envs, num_of_ctrl_target_dof_pos), device=device)
 
     pos_error, axis_angle_error = get_pose_error(
         fingertip_midpoint_pos=hand_pos,
@@ -64,8 +65,10 @@ def compute_dof_pos_target(num_envs,
                                            ik_method='dls',
                                            jacobian=jacobian,
                                            device=device)
-
-    ctrl_target_dof_pos[:, :] = arm_dof_pos + delta_arm_dof_pos
+    
+    delta_arm_dof_pos = tensor_clamp(delta_arm_dof_pos, torch.tensor(-0.05, device=device), torch.tensor(0.05, device=device))
+    ctrl_target_dof_pos[:, :] = arm_dof_pos + delta_arm_dof_pos # Multiply by a coefficient so that the velocity is not too high (otherwise severe oscillations occur)
+    # ctrl_target_dof_pos[:, :] = arm_dof_pos + delta_arm_dof_pos*0.25 # Multiply by a coefficient so that the velocity is not too high (otherwise severe oscillations occur)
 
     return ctrl_target_dof_pos
 
