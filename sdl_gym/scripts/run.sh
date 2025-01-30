@@ -1,16 +1,9 @@
-#!/bin/bash
-
 # Activate the Python environment if needed
 
-
-
+# Knob Task
 # Train
-# python train.py --task=g1_knob --num_envs=64
-python train.py --task=g1_knob_ik_test_onlyarmhand --num_envs=64
-# python train.py --task=g1_knob_ik_test_onlyarmhand --num_envs=64 --headless
-# python train.py --task=g1_knob_ik_test --num_envs=64
-
-
-
-# Inference
-
+python train.py --task=g1_knob_1 --num_envs=64
+# python train.py --task=g1_knob_2 --num_envs=64
+# python train.py --task=g1_knob_3 --num_envs=64
+# python train.py --task=g1_knob_4 --num_envs=64
+# python train.py --task=g1_knob_5 --num_envs=64

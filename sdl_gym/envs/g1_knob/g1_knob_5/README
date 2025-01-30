@@ -1,0 +1,15 @@
+Using the g1_29dof_with_hand_base_at_torso.urdf, which is just by modifying the original URDF file to revert the waist's 3 DoFs.
+The base is now the torso_link, and use the Isaac Gym's Jacobian to get the arm's Jacobian value.
+Control the arm through IK, 100% percent correct in terms of control.
+
+
+
+
+IMPORTANT - 
+
+By setting the torso_link as the base link, it means that the 3 waists’ joints parent/child links’ orders are reversed 
+(e.g., PREVIOUSLY: waist_yaw -> waist_pitch; NOW: waist_pitch -> waist_yaw). 
+Hence, those 3 actuators’ positions also change because an actuator is mounted on the parent’s link by default. 
+This denotes that the control dynamic may have changed in these 3 DOFs (I am not sure). 
+If this is the case, we can only use this URDF to train the arm+hand policy. 
+During the inference phase, where we also want to integrate the waist’s control, we must return to the original URDF, whose base link is still the pelvis.

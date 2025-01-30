@@ -66,7 +66,7 @@ def compute_dof_pos_target(num_envs,
                                            jacobian=jacobian,
                                            device=device)
     
-    delta_arm_dof_pos = tensor_clamp(delta_arm_dof_pos, torch.tensor(-0.05, device=device), torch.tensor(0.05, device=device))
+    delta_arm_dof_pos = tensor_clamp(delta_arm_dof_pos, torch.tensor(-0.02, device=device), torch.tensor(0.02, device=device))
     ctrl_target_dof_pos[:, :] = arm_dof_pos + delta_arm_dof_pos # Multiply by a coefficient so that the velocity is not too high (otherwise severe oscillations occur)
     # ctrl_target_dof_pos[:, :] = arm_dof_pos + delta_arm_dof_pos*0.25 # Multiply by a coefficient so that the velocity is not too high (otherwise severe oscillations occur)
 

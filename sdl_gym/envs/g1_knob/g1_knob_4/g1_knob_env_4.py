@@ -1,4 +1,4 @@
-from sdl_gym.envs.g1_knob.g1_robot import G1Robot
+from sdl_gym.envs.g1_knob.g1_knob_4.g1_robot_4 import G1Robot
 from sdl_gym import SDL_GYM_ROOT_DIR, envs, SDL_GYM_ENVS_DIR
 import time
 from warnings import WarningMessage
@@ -14,11 +14,11 @@ from sdl_gym.envs.base.base_task import BaseTask
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict, print_g1_dof_index
-from .g1_robot_config import G1RobotCfg
-from ...utils import factory_control as fc
+from .g1_robot_config_4 import G1RobotCfg
+from ....utils import factory_control as fc
 
 
-class G1KnobRobot(G1Robot):
+class G1KnobRobot_4(G1Robot):
     
     def _init_data(self):
           
@@ -26,19 +26,23 @@ class G1KnobRobot(G1Robot):
         self.right_hand_fingers_dofs_num = 7
         self.right_arm_dofs_num = 7
         self.torso_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "torso_link")
+        self.right_shoulder_pitch_link_handle = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_shoulder_pitch_link") # 29
         self.right_wrist_yaw_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_wrist_yaw_link") # 36
         self.knob_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob")
         self.g1_right_hand_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_link")  
+        self.waist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_yaw_joint") # 12
+        self.waist_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_pitch_joint") # 14
         self.right_shoulder_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_shoulder_pitch_joint") # 29
         self.right_wrist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_joint") # 35
         
         knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
         
         local_knob_hand_reach_pose = gymapi.Transform()
-        local_knob_hand_reach_pose.p = gymapi.Vec3(0.25, 0.1, 0.3)
-        local_knob_hand_reach_pose.r = gymapi.Quat(0, 0, 0, 1)
+        local_knob_hand_reach_pose.p = gymapi.Vec3(0.50, 0.3, 0.1)
+        local_knob_hand_reach_pose.r =  gymapi.Quat.from_euler_zyx(0, 0, np.pi)
         
         global_knob_hand_reach_pose = knob_pose * local_knob_hand_reach_pose
+        self.global_hand_pose = gymapi.Transform()
         
         self.global_knob_hand_reach_pos = to_torch([global_knob_hand_reach_pose.p.x, global_knob_hand_reach_pose.p.y,
                                                 global_knob_hand_reach_pose.p.z], device=self.device).repeat((self.num_envs, 1))
@@ -47,10 +51,10 @@ class G1KnobRobot(G1Robot):
         
         # Visualization
         self.global_knob_hand_reach_pose = global_knob_hand_reach_pose
-        self.axes_geom = gymutil.AxesGeometry(0.1)
+        self.axes_geom = gymutil.AxesGeometry(0.2)
         self.sphere_rot = gymapi.Quat.from_euler_zyx(0.5 * np.pi, 0, 0)
         sphere_pose = gymapi.Transform(r=self.sphere_rot)
-        self.sphere_geom = gymutil.WireframeSphereGeometry(0.02, 12, 12, sphere_pose, color=(1, 1, 0))
+        self.sphere_geom = gymutil.WireframeSphereGeometry(0.08, 12, 12, sphere_pose, color=(1, 1, 0))
         
     
     def _init_buffers(self):
@@ -66,8 +70,6 @@ class G1KnobRobot(G1Robot):
         dof_state_tensor_tensor = self.gym.acquire_dof_state_tensor(self.sim)
         jacobian_tensor = self.gym.acquire_jacobian_tensor(self.sim, "g1")
         net_contact_forces_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
-
-        self._refresh_tensors()
         
         
         # create some wrapper tensors for different slices
@@ -88,6 +90,7 @@ class G1KnobRobot(G1Robot):
         self.jacobian = gymtorch.wrap_tensor(jacobian_tensor)
         self.right_hand_jacobian = self.jacobian[:, self.right_wrist_yaw_link_index - 1, :, self.right_shoulder_pitch_joint_handle:self.right_wrist_yaw_joint_handle+1] # Need to be inspected
 
+        self._refresh_tensors()
         # initialize some data used later on
         self.common_step_counter = 0
         self.extras = {}
@@ -108,7 +111,9 @@ class G1KnobRobot(G1Robot):
         self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         self.knob_target_angle = torch.tensor([torch.pi], device=self.device) 
         self.knob_initial_angle = torch.tensor([- torch.pi / 2], device=self.device) 
-
+        
+        self.hand_to_target_diff_rot = torch.zeros_like(self.base_quat, device=self.device)
+        self.hand_to_target_diff_pos = torch.zeros_like(self.base_pos, device=self.device)
       
 
         # joint positions offsets and PD gains
@@ -379,6 +384,7 @@ class G1KnobRobot(G1Robot):
         
         ############ Test ############
         # self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = network_output_actions[:, 6:]
+        # Hand temporary dof pos target
         self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = 0
         
         self._apply_actions_as_ctrl_targets(actions=network_output_actions[:, :6], do_scale=True)
@@ -386,7 +392,6 @@ class G1KnobRobot(G1Robot):
         self.real_dof_control_pos_target[:, :] = tensor_clamp(
              self.real_dof_control_pos_target, self.dof_pos_limits[self.right_shoulder_pitch_joint_handle:, 0], self.dof_pos_limits[self.right_shoulder_pitch_joint_handle:, 1]
          )
-        
         
     def _apply_actions_as_ctrl_targets(self, actions, do_scale=True, clamp_rot=True, clamp_rot_thresh=1.0e-6, do_force_ctrl=False):
         """Apply actions from policy as position/rotation targets."""
@@ -398,8 +403,6 @@ class G1KnobRobot(G1Robot):
         if do_scale:
             pos_actions = pos_actions @ torch.diag(torch.tensor([0.05, 0.05, 0.05], device=self.device))
         self.ctrl_target_hand_pos = self.g1_right_hand_pos + pos_actions
-        ############ Test ############
-        self.ctrl_target_hand_pos = self.global_knob_hand_reach_pos
         
         # Interpret actions as target rot (axis-angle) displacements
         rot_actions = actions[:, 3:6]
@@ -417,7 +420,17 @@ class G1KnobRobot(G1Robot):
                                                                                                          1))
         self.ctrl_target_hand_quat = quat_mul(rot_actions_quat, self.g1_right_hand_quat)
         ############ Test ############
+        self.ctrl_target_hand_pos = self.global_knob_hand_reach_pos
         self.ctrl_target_hand_quat = self.global_knob_hand_reach_rot
+        
+        # Solve the errors
+        self.g1_right_hand_rot_inv, self.g1_right_hand_pos_inv = tf_inverse(self.g1_right_hand_quat, self.g1_right_hand_pos)
+        self.hand_to_target_diff_rot[:], self.hand_to_target_diff_pos[:] = tf_combine(
+            self.global_knob_hand_reach_rot, self.global_knob_hand_reach_pos, self.g1_right_hand_rot_inv, self.g1_right_hand_pos_inv
+        )
+        print(self.hand_to_target_diff_pos[0])
+        print(self.hand_to_target_diff_rot[0])
+        ############ Test ############
         
         # According Factory "if do_force_ctrl" part not included here
         # if do_force_ctrl:
@@ -451,6 +464,7 @@ class G1KnobRobot(G1Robot):
             jacobian=self.hand_jacobian_tf,
             ctrl_target_hand_pos=self.ctrl_target_hand_pos,
             ctrl_target_hand_quat=self.ctrl_target_hand_quat,
+            num_of_ctrl_target_dof_pos = 7,
             device=self.device)
          
          self.real_dof_control_pos_target[:, :self.right_arm_dofs_num] = self.ctrl_target_dof_pos
@@ -468,11 +482,15 @@ class G1KnobRobot(G1Robot):
         self.pre_physics_step(self.network_output_actions)
         
         # Visualize the hand reach point
+        self.gym.clear_lines(self.viewer)
         for i in range(self.num_envs):
-            # gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
+            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
             gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
-        
-        
+            self.global_hand_pose.p = gymapi.Vec3(*self.g1_right_hand_pos[i].cpu().numpy())
+            self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
+            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+    
         # step physics and render each frame
         self.render()
         for _ in range(self.cfg.control.decimation):
@@ -480,7 +498,7 @@ class G1KnobRobot(G1Robot):
             # self._compute_torques(self.real_dof_control_pos_target)
             self._compute_dof_tartget_pos(self.real_dof_control_pos_target)
             # self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
-            
+            # import ipdb; ipdb.set_trace()
             self.gym.simulate(self.sim)
             if self.cfg.env.test:
                 elapsed_time = self.gym.get_elapsed_time(self.sim)
@@ -501,6 +519,13 @@ class G1KnobRobot(G1Robot):
             self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
         return self.obs_buf, self.privileged_obs_buf, self.rew_buf, self.reset_buf, self.extras
 
+    ############################# Test #############################
+    def _compute_dof_tartget_pos(self, actions):
+        self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
+        self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = actions
+        
+        self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
+    ############################# Test #############################
 
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
@@ -580,13 +605,7 @@ class G1KnobRobot(G1Robot):
         # add perceptive inputs if not blind
         # add noise if needed
         
-        
-    ############################# Test #############################
-    def _compute_dof_tartget_pos(self, actions):
-        self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
-        self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = actions
-        
-        self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
+
     
     def _compute_torques(self, actions):
         """ Compute torques from actions.

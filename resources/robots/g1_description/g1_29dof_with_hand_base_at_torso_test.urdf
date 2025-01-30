@@ -1,0 +1,132 @@
+<robot name="g1_29dof_with_hand">
+  <mujoco>
+    <compiler meshdir="meshes" discardvisual="false"/>
+  </mujoco>
+
+  <!-- [CAUTION] uncomment when convert to mujoco -->
+  <!-- <link name="world"></link>
+  <joint name="floating_base_joint" type="floating">
+    <parent link="world"/>
+    <child link="pelvis"/>
+  </joint> -->
+
+  <link name="pelvis">
+    <inertial>
+      <origin xyz="0 0 -0.07605" rpy="0 0 0"/>
+      <mass value="3.813"/>
+      <inertia ixx="0.010549" ixy="0" ixz="2.1E-06" iyy="0.0093089" iyz="0" izz="0.0079184"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/pelvis.STL"/>
+      </geometry>
+      <material name="dark">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+  </link>
+
+
+  <!-- Torso -->
+  <link name="waist_yaw_link">
+    <inertial>
+      <origin xyz="0.003964 0 0.018769" rpy="0 0 0"/>
+      <mass value="0.244"/>
+      <inertia ixx="9.9587E-05" ixy="-1.833E-06" ixz="-1.2617E-05" iyy="0.00012411" iyz="-1.18E-07" izz="0.00015586"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/waist_yaw_link.STL"/>
+      </geometry>
+      <material name="white">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- <joint name="waist_yaw_joint" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="pelvis"/>
+    <child link="waist_yaw_link"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.618" upper="2.618" effort="88" velocity="32"/>
+  </joint> -->
+  <joint name="waist_yaw_joint" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="waist_yaw_link"/>
+    <child link="pelvis"/>
+    <axis xyz="0 0 -1"/>
+    <limit lower="-2.618" upper="2.618" effort="88" velocity="32"/>
+</joint>
+
+
+  <link name="waist_roll_link">
+    <inertial>
+      <origin xyz="0 -0.000236 0.010111" rpy="0 0 0"/>
+      <mass value="0.047"/>
+      <inertia ixx="7.515E-06" ixy="0" ixz="0" iyy="6.398E-06" iyz="9.9E-08" izz="3.988E-06"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/waist_roll_link.STL"/>
+      </geometry>
+      <material name="white">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  <!-- <joint name="waist_roll_joint" type="revolute">
+    <origin xyz="-0.0039635 0 0.035" rpy="0 0 0"/>
+    <parent link="waist_yaw_link"/>
+    <child link="waist_roll_link"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.52" upper="0.52" effort="50" velocity="37"/>
+  </joint> -->
+  <joint name="waist_roll_joint" type="revolute">
+    <origin xyz="0.0039635 0 -0.035" rpy="0 0 0"/>
+    <parent link="waist_roll_link"/>
+    <child link="waist_yaw_link"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="-0.52" upper="0.52" effort="50" velocity="37"/>
+</joint>
+
+
+  <link name="torso_link">
+    <inertial>
+      <origin xyz="0.002601 0.000257 0.153719" rpy="0 0 0"/>
+      <mass value="8.562"/>
+      <inertia ixx="0.065674966" ixy="-8.597E-05" ixz="-0.001737252" iyy="0.053535188" iyz="8.6899E-05" izz="0.030808125"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/torso_link.STL"/>
+      </geometry>
+      <material name="white">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/torso_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- <joint name="waist_pitch_joint" type="revolute">
+    <origin xyz="0 0 0.019" rpy="0 0 0"/>
+    <parent link="waist_roll_link"/>
+    <child link="torso_link"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.52" upper="0.52" effort="50" velocity="37"/>
+  </joint> -->
+  <joint name="waist_pitch_joint" type="revolute">
+    <origin xyz="0 0 -0.019" rpy="0 0 0"/>
+    <parent link="torso_link"/>
+    <child link="waist_roll_link"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="-0.52" upper="0.52" effort="50" velocity="37"/>
+</joint>
+</robot>

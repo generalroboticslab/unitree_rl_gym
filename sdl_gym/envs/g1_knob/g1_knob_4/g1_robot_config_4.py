@@ -1,4 +1,4 @@
-from ..base.base_config import BaseConfig
+from ...base.base_config import BaseConfig
 from isaacgym import gymtorch, gymapi, gymutil
 
 class G1RobotCfg(BaseConfig):
@@ -6,7 +6,7 @@ class G1RobotCfg(BaseConfig):
         num_envs = 4096
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
-        episode_length_s = 20 # episode length in seconds
+        episode_length_s = 5 # episode length in seconds
         test = False
         
         dataPublisher_enable = True

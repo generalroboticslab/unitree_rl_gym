@@ -1,0 +1,3 @@
+Using the g1_29dof_with_hand_lock_waist.urdf, which is just by modifying the original URDF file to set the waist's 3 DoFs from revolute to fixed. (Collapse=True)
+The base is still the pelvis_link, and use the Isaac Gym's Jacobian to get the arm's Jacobian value.
+Control the arm through IK, 100% percent correct in terms of control.

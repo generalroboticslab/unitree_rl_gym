@@ -1,4 +1,4 @@
-from sdl_gym.envs.g1_knob.g1_robot import G1Robot
+from sdl_gym.envs.g1_knob.g1_knob_2.g1_robot_2 import G1Robot
 from sdl_gym import SDL_GYM_ROOT_DIR, envs, SDL_GYM_ENVS_DIR
 import time
 from warnings import WarningMessage
@@ -14,11 +14,11 @@ from sdl_gym.envs.base.base_task import BaseTask
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict, print_g1_dof_index
-from .g1_robot_config import G1RobotCfg
-from ...utils import factory_control as fc
+from .g1_robot_config_2 import G1RobotCfg
+from ....utils import factory_control as fc
 
 
-class G1KnobRobotIKTest(G1Robot):
+class G1KnobRobot_2(G1Robot):
     
     def _init_data(self):
           

@@ -1,0 +1,7 @@
+Using the g1_29dof_with_hand.urdf, which is the original URDF file.
+The base is still the pelvis_link, and use the library - Robotics Tool Lab's Jacobian to compute the arm's Jacobian.
+Robotics Tool Lab can specify the base link and the EE. But it needs to transfer the data back and forth between GPU and CPU.
+Set the waists' 3 DOFs pos as constantly, but control arm through IK.
+Not sure this Jacobian for arm is correct or not.
+
+Guess: The jacobian computed through RTB is relative to the torso_link's local frame, but the Jacobian acquired through Isaac Gym is the world frame.

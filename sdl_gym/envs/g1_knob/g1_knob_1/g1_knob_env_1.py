@@ -1,4 +1,4 @@
-from sdl_gym.envs.g1_knob.g1_robot import G1Robot
+from sdl_gym.envs.g1_knob.g1_knob_1.g1_robot_1 import G1Robot
 from sdl_gym import SDL_GYM_ROOT_DIR, envs, SDL_GYM_ENVS_DIR
 import time
 from warnings import WarningMessage
@@ -14,13 +14,11 @@ from sdl_gym.envs.base.base_task import BaseTask
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict, print_g1_dof_index
-from .g1_robot_config import G1RobotCfg
-from ...utils import factory_control as fc
-import roboticstoolbox as rtb
-from spatialmath import SE3
+from .g1_robot_config_1 import G1RobotCfg
+from ....utils import factory_control as fc
 
 
-class G1KnobRobotIKTestOnlyarmhand(G1Robot):
+class G1KnobRobot_1(G1Robot):
     
     def _init_data(self):
           
@@ -36,13 +34,12 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         self.waist_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_pitch_joint") # 14
         self.right_shoulder_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_shoulder_pitch_joint") # 29
         self.right_wrist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_joint") # 35
-        # import ipdb; ipdb.set_trace()
         
         knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
         
         local_knob_hand_reach_pose = gymapi.Transform()
-        local_knob_hand_reach_pose.p = gymapi.Vec3(0.25, 0.05, 0.20)
-        local_knob_hand_reach_pose.r = gymapi.Quat(0, 0, 0, 1)
+        local_knob_hand_reach_pose.p = gymapi.Vec3(0.25, 0.05, 0.1)
+        local_knob_hand_reach_pose.r =  gymapi.Quat.from_euler_zyx(0, 0, np.pi)
         
         global_knob_hand_reach_pose = knob_pose * local_knob_hand_reach_pose
         self.global_hand_pose = gymapi.Transform()
@@ -54,10 +51,10 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         
         # Visualization
         self.global_knob_hand_reach_pose = global_knob_hand_reach_pose
-        self.axes_geom = gymutil.AxesGeometry(0.1)
+        self.axes_geom = gymutil.AxesGeometry(0.2)
         self.sphere_rot = gymapi.Quat.from_euler_zyx(0.5 * np.pi, 0, 0)
         sphere_pose = gymapi.Transform(r=self.sphere_rot)
-        self.sphere_geom = gymutil.WireframeSphereGeometry(0.02, 12, 12, sphere_pose, color=(1, 1, 0))
+        self.sphere_geom = gymutil.WireframeSphereGeometry(0.08, 12, 12, sphere_pose, color=(1, 1, 0))
         
     
     def _init_buffers(self):
@@ -91,10 +88,9 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         self.dof_pos_knob = self.dof_state_knob[..., 0]
         self.dof_vel_knob = self.dof_state_knob[..., 1]
         self.jacobian = gymtorch.wrap_tensor(jacobian_tensor)
-        self.right_hand_jacobian = torch.zeros(self.num_envs, 6, self.right_arm_dofs_num, dtype=torch.float, device=self.device, requires_grad=False)
+        self.right_hand_jacobian = self.jacobian[:, self.right_wrist_yaw_link_index - 1, :, self.right_shoulder_pitch_joint_handle:self.right_wrist_yaw_joint_handle+1] # Need to be inspected
 
         self._refresh_tensors()
-        
         # initialize some data used later on
         self.common_step_counter = 0
         self.extras = {}
@@ -225,7 +221,6 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         
         g1_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options_g1)
         self.g1_asset = g1_asset
-        self.ik_helper_robot = rtb.robot.Robot.URDF(asset_path)
         
         # G1 asset Setup
         self.num_dof_g1 = self.gym.get_asset_dof_count(g1_asset) # CONFUSE......
@@ -383,42 +378,6 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         self.gym.refresh_rigid_body_state_tensor(self.sim)
         self.gym.refresh_jacobian_tensors(self.sim)
         self.gym.refresh_net_contact_force_tensor(self.sim)
-        self._process_jacobian()
-
-    
-    def _process_jacobian(self):
-        self.arm_dof_pos = self.dof_pos_g1[:, self.right_shoulder_pitch_joint_handle:self.right_wrist_yaw_joint_handle+1].cpu().numpy()
-        self.ik_helper_robot.q = np.zeros(43)
-        
-        xyz = self.rigid_body_states[:, self.torso_link_index, 0:3].cpu().numpy()
-        rpy = self.rigid_body_states[:, self.torso_link_index, 3:7]
-        rpy = get_euler_xyz(rpy)
-        r=rpy[0].cpu().numpy()
-        p=rpy[1].cpu().numpy()
-        y=rpy[2].cpu().numpy()
-        
-        for i in range(self.num_envs):
-            rpy_i = [r[i], p[i], y[i]]
-            self.ik_helper_robot.base = SE3.Trans(xyz[i]) * SE3.RPY(rpy_i, order='xyz')
-            
-            self.ik_helper_robot.q = np.zeros(43)
-            # self.ik_helper_robot.q[29:36] = self.arm_dof_pos[i, :]
-            self.ik_helper_robot.q[:] = self.dof_pos_g1[i, :].cpu().numpy()
-            self.right_hand_jacobian[i, :] = torch.tensor(self.ik_helper_robot.jacobe(
-                q=self.ik_helper_robot.q, 
-                end='right_wrist_yaw_link', 
-                start='right_shoulder_pitch_link'
-            ), device=self.device)[:, :]
-        # print('dof_pos_g1', self.dof_pos_g1[0])
-        # print('arm_dof_pos', self.arm_dof_pos[0])
-        # print('right_hand_jacobian', self.right_hand_jacobian[0, :])
-        # import ipdb; ipdb.set_trace()
-            # self.right_hand_jacobian[i, :] = torch.tensor(self.ik_helper_robot.jacobe(
-            #     self.arm_dof_pos[i, :], 
-            #     end='right_wrist_yaw_link', 
-            #     start='right_shoulder_pitch_link'
-            # ), device=self.device)[:, :]
-
         
     def pre_physics_step(self, actions):
         network_output_actions = actions.clone().to(self.device) # shape = (num_envs, num_actions); values = [-1, 1]
@@ -471,9 +430,6 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         )
         print(self.hand_to_target_diff_pos[0])
         print(self.hand_to_target_diff_rot[0])
-        # self.ctrl_target_hand_quat, self.ctrl_target_hand_pos = tf_combine(
-        #     self.ctrl_target_hand_quat, self.ctrl_target_hand_pos, self.hand_to_target_diff_rot, self.hand_to_target_diff_pos
-        # )
         ############ Test ############
         
         # According Factory "if do_force_ctrl" part not included here
@@ -534,8 +490,7 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
             self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
             gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
             gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
-        
-        
+    
         # step physics and render each frame
         self.render()
         for _ in range(self.cfg.control.decimation):
@@ -543,7 +498,7 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
             # self._compute_torques(self.real_dof_control_pos_target)
             self._compute_dof_tartget_pos(self.real_dof_control_pos_target)
             # self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
-            
+            # import ipdb; ipdb.set_trace()
             self.gym.simulate(self.sim)
             if self.cfg.env.test:
                 elapsed_time = self.gym.get_elapsed_time(self.sim)
@@ -567,9 +522,8 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
     ############################# Test #############################
     def _compute_dof_tartget_pos(self, actions):
         self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
-        self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = actions[:, :]
+        self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = actions
         
-        # print(self.input_sim_actions_vectors[0])
         self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
     ############################# Test #############################
 
@@ -651,7 +605,7 @@ class G1KnobRobotIKTestOnlyarmhand(G1Robot):
         # add perceptive inputs if not blind
         # add noise if needed
         
-    
+
     
     def _compute_torques(self, actions):
         """ Compute torques from actions.

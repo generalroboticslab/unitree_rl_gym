@@ -17,7 +17,7 @@ from sdl_gym.utils.publisher import DataPublisher, DataReceiver
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict
-from .g1_robot_config import G1RobotCfg
+from .g1_robot_config_3 import G1RobotCfg
 
 class G1Robot(BaseTask):
     def __init__(self, cfg: G1RobotCfg, sim_params, physics_engine, sim_device, headless):

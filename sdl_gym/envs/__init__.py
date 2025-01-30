@@ -1,17 +1,41 @@
 from sdl_gym import SDL_GYM_ROOT_DIR, SDL_GYM_ENVS_DIR
+from sdl_gym.utils.task_registry import task_registry
 
 from sdl_gym.envs.g1.g1_config import G1RoughCfg, G1RoughCfgPPO
 from sdl_gym.envs.g1.g1_env import G1Robot
-from .base.legged_robot import LeggedRobot
 
-from sdl_gym.envs.g1_knob.g1_knob_config import G1KnobCfg, G1KnobCfgPPO
-from sdl_gym.envs.g1_knob.g1_knob_env import G1KnobRobot
-from sdl_gym.envs.g1_knob.g1_knob_env_ik_test import G1KnobRobotIKTest
-from sdl_gym.envs.g1_knob.g1_knob_env_ik_test_onlyarmhand import G1KnobRobotIKTestOnlyarmhand
+# Knob
+# 1
+from sdl_gym.envs.g1_knob.g1_knob_1.g1_knob_config_1 import G1KnobCfg_1, G1KnobCfgPPO_1
+from sdl_gym.envs.g1_knob.g1_knob_1.g1_knob_env_1 import G1KnobRobot_1
 
-from sdl_gym.utils.task_registry import task_registry
+# 2
+from sdl_gym.envs.g1_knob.g1_knob_2.g1_knob_config_2 import G1KnobCfg_2, G1KnobCfgPPO_2
+from sdl_gym.envs.g1_knob.g1_knob_2.g1_knob_env_2 import G1KnobRobot_2
 
+# 3
+from sdl_gym.envs.g1_knob.g1_knob_3.g1_knob_config_3 import G1KnobCfg_3, G1KnobCfgPPO_3
+from sdl_gym.envs.g1_knob.g1_knob_3.g1_knob_env_3 import G1KnobRobot_3
+
+# 4
+from sdl_gym.envs.g1_knob.g1_knob_4.g1_knob_config_4 import G1KnobCfg_4, G1KnobCfgPPO_4
+from sdl_gym.envs.g1_knob.g1_knob_4.g1_knob_env_4 import G1KnobRobot_4
+
+# 5
+from sdl_gym.envs.g1_knob.g1_knob_5.g1_knob_config_5 import G1KnobCfg_5, G1KnobCfgPPO_5
+from sdl_gym.envs.g1_knob.g1_knob_5.g1_knob_env_5 import G1KnobRobot_5
+
+
+task_registry.register( "g1_knob_1", G1KnobRobot_1, G1KnobCfg_1(), G1KnobCfgPPO_1())
+task_registry.register( "g1_knob_2", G1KnobRobot_2, G1KnobCfg_2(), G1KnobCfgPPO_2())
+task_registry.register( "g1_knob_3", G1KnobRobot_3, G1KnobCfg_3(), G1KnobCfgPPO_3())
+task_registry.register( "g1_knob_4", G1KnobRobot_4, G1KnobCfg_4(), G1KnobCfgPPO_4())
+task_registry.register( "g1_knob_5", G1KnobRobot_5, G1KnobCfg_5(), G1KnobCfgPPO_5())
+
+
+
+
+
+
+# G1 original locomotion
 task_registry.register( "g1", G1Robot, G1RoughCfg(), G1RoughCfgPPO())
-task_registry.register( "g1_knob", G1KnobRobot, G1KnobCfg(), G1KnobCfgPPO())
-task_registry.register( "g1_knob_ik_test", G1KnobRobotIKTest, G1KnobCfg(), G1KnobCfgPPO())
-task_registry.register( "g1_knob_ik_test_onlyarmhand", G1KnobRobotIKTestOnlyarmhand, G1KnobCfg(), G1KnobCfgPPO())
