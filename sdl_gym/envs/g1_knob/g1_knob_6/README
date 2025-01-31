@@ -1,0 +1,4 @@
+Using the g1_29dof_with_hand.urdf, which is the original URDF file.
+The base is still the pelvis_link, and use the Isaac Gym's Jacobian to get the arm's Jacobian value.
+Set the waists' 3 DOFs pos as constantly, but control arm through IK.
+Not sure this Jacobian for arm is correct or not.

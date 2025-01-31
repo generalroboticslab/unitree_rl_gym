@@ -25,13 +25,16 @@ from sdl_gym.envs.g1_knob.g1_knob_4.g1_knob_env_4 import G1KnobRobot_4
 from sdl_gym.envs.g1_knob.g1_knob_5.g1_knob_config_5 import G1KnobCfg_5, G1KnobCfgPPO_5
 from sdl_gym.envs.g1_knob.g1_knob_5.g1_knob_env_5 import G1KnobRobot_5
 
+# 6
+from sdl_gym.envs.g1_knob.g1_knob_6.g1_knob_config_6 import G1KnobCfg_6, G1KnobCfgPPO_6
+from sdl_gym.envs.g1_knob.g1_knob_6.g1_knob_env_6 import G1KnobRobot_6
 
 task_registry.register( "g1_knob_1", G1KnobRobot_1, G1KnobCfg_1(), G1KnobCfgPPO_1())
 task_registry.register( "g1_knob_2", G1KnobRobot_2, G1KnobCfg_2(), G1KnobCfgPPO_2())
 task_registry.register( "g1_knob_3", G1KnobRobot_3, G1KnobCfg_3(), G1KnobCfgPPO_3())
 task_registry.register( "g1_knob_4", G1KnobRobot_4, G1KnobCfg_4(), G1KnobCfgPPO_4())
 task_registry.register( "g1_knob_5", G1KnobRobot_5, G1KnobCfg_5(), G1KnobCfgPPO_5())
-
+task_registry.register( "g1_knob_6", G1KnobRobot_6, G1KnobCfg_6(), G1KnobCfgPPO_6())
 
 
 
