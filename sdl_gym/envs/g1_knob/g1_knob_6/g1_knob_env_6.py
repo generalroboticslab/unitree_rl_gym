@@ -20,26 +20,32 @@ from ....utils import factory_control as fc
 
 class G1KnobRobot_6(G1Robot):
     
+    # Is called during super().__init__, right after _create_envs()
     def _init_data(self):
           
         # Store some indexes / handles
         self.right_hand_fingers_dofs_num = 7
         self.right_arm_dofs_num = 7
+        
         self.torso_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "torso_link")
         self.right_shoulder_pitch_link_handle = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_shoulder_pitch_link") # 29
         self.right_wrist_yaw_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_wrist_yaw_link") # 36
         self.knob_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob")
-        self.g1_right_hand_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_link")  
+        self.right_hand_palm_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_palm_link") 
+        
         self.waist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_yaw_joint") # 12
         self.waist_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_pitch_joint") # 14
         self.right_shoulder_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_shoulder_pitch_joint") # 29
         self.right_wrist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_joint") # 35
+        self.right_hand_index_0_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_0_joint") # 36
+        self.right_hand_index_1_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_joint") # 37
+        self.right_hand_thumb_2_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_thumb_2_joint") # 42
         
         knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
         
         local_knob_hand_reach_pose = gymapi.Transform()
-        local_knob_hand_reach_pose.p = gymapi.Vec3(0.25, 0.0, 0.1)
-        local_knob_hand_reach_pose.r =  gymapi.Quat.from_euler_zyx(0, 0, np.pi)
+        local_knob_hand_reach_pose.p = gymapi.Vec3(0.15, -0.03, -0.025)
+        local_knob_hand_reach_pose.r =  gymapi.Quat.from_euler_zyx(0, 0, np.pi * 5 / 8)
         
         global_knob_hand_reach_pose = knob_pose * local_knob_hand_reach_pose
         self.global_hand_pose = gymapi.Transform()
@@ -56,11 +62,10 @@ class G1KnobRobot_6(G1Robot):
         sphere_pose = gymapi.Transform(r=self.sphere_rot)
         self.sphere_geom = gymutil.WireframeSphereGeometry(0.08, 12, 12, sphere_pose, color=(1, 1, 0))
         
-    
+    # Is called after super().__init__
     def _init_buffers(self):
         """ Initialize torch tensors which will contain simulation states and processed quantities
         """
-        
         
         self.num_dofs = self.gym.get_sim_dof_count(self.sim) // self.num_envs
         
@@ -69,27 +74,37 @@ class G1KnobRobot_6(G1Robot):
         rigid_body_state_tensor = self.gym.acquire_rigid_body_state_tensor(self.sim)
         dof_state_tensor_tensor = self.gym.acquire_dof_state_tensor(self.sim)
         jacobian_tensor = self.gym.acquire_jacobian_tensor(self.sim, "g1")
-        net_contact_forces_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
+        # net_contact_forces_tensor = self.gym.acquire_net_contact_force_tensor(self.sim)
         
         
         # create some wrapper tensors for different slices
         self.root_states = gymtorch.wrap_tensor(actor_root_state_tensor).view(self.num_envs, -1, 13)
         self.rigid_body_states = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, -1, 13)
-        self.root_states_g1 = self.root_states[:, 0].contiguous()
+        # self.root_states_g1 = self.root_states[:, 0].contiguous()
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor_tensor)
         self.dof_state_g1 = self.dof_state.view(self.num_envs, -1, 2)[:, :self.num_dof_g1]
         self.dof_pos_g1 = self.dof_state_g1[..., 0]
         self.dof_vel_g1 = self.dof_state_g1[..., 1]
-        self.base_quat = self.root_states_g1[:, 3:7]
-        self.rpy = get_euler_xyz_in_tensor(self.base_quat)
-        self.base_pos = self.root_states_g1[:self.num_envs, 0:3]
-        self.contact_forces = gymtorch.wrap_tensor(net_contact_forces_tensor).view(self.num_envs, -1, 3) # shape: num_envs, num_bodies, xyz axis
+        # self.base_quat = self.root_states_g1[:, 3:7]
+        # self.rpy = get_euler_xyz_in_tensor(self.base_quat)
+        # self.base_pos = self.root_states_g1[:self.num_envs, 0:3]
+        # self.contact_forces = gymtorch.wrap_tensor(net_contact_forces_tensor).view(self.num_envs, -1, 3) # shape: num_envs, num_bodies, xyz axis
         self.dof_state_knob = self.dof_state.view(self.num_envs, -1, 2)[:, self.num_dof_g1:]
         self.dof_pos_knob = self.dof_state_knob[..., 0]
         self.dof_vel_knob = self.dof_state_knob[..., 1]
         self.jacobian = gymtorch.wrap_tensor(jacobian_tensor)
-        self.right_hand_jacobian = self.jacobian[:, self.right_wrist_yaw_link_index - 1, :, self.right_shoulder_pitch_joint_handle:self.right_wrist_yaw_joint_handle+1] # Need to be inspected
+        self.right_hand_jacobian = self.jacobian[:, self.right_hand_palm_link_handle - 1, :, self.right_shoulder_pitch_joint_handle:self.right_wrist_yaw_joint_handle+1] # Need to be inspected
 
+        self.g1_right_hand_pos = self.rigid_body_states[:, self.right_hand_palm_link_handle, 0:3]
+        self.g1_right_hand_quat = self.rigid_body_states[:, self.right_hand_palm_link_handle, 3:7]
+        self.g1_right_hand_7_dofs_pos = self.dof_pos_g1[:, self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]
+        self.g1_right_hand_7_dofs_vel = self.dof_vel_g1[:, self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]
+        
+        # Buffers for reward history
+        self.last_knob_rotation_percentage = torch.zeros(self.num_envs, device=self.device)
+        self.knob_rotate_reward_buf = torch.zeros(self.num_envs, device=self.device)
+        
+        
         self._refresh_tensors()
         # initialize some data used later on
         self.common_step_counter = 0
@@ -102,18 +117,14 @@ class G1KnobRobot_6(G1Robot):
         self.network_output_actions = torch.zeros(self.num_envs, self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)
         self.real_dof_control_pos_target = torch.zeros(self.num_envs, 14, dtype=torch.float, device=self.device, requires_grad=False)
         self.input_sim_actions_vectors = torch.zeros(self.num_envs, self.num_dofs, dtype=torch.float, device=self.device, requires_grad=False)
-        self.last_network_output_actions = torch.zeros(self.num_envs, self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)
-        self.last_dof_vel = torch.zeros_like(self.dof_vel_g1)
-        self.last_root_vel = torch.zeros_like(self.root_states_g1[:, 7:13])
-        self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 7:10])
-        self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 10:13])
-        # import ipdb; ipdb.set_trace()   
-        self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
+        # self.last_network_output_actions = torch.zeros(self.num_envs, self.num_actions, dtype=torch.float, device=self.device, requires_grad=False)
+        # self.last_dof_vel = torch.zeros_like(self.dof_vel_g1)
+        # self.last_root_vel = torch.zeros_like(self.root_states_g1[:, 7:13])
+        # self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 7:10])
+        # self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 10:13])
+        # self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         self.knob_target_angle = torch.tensor([torch.pi], device=self.device) 
         self.knob_initial_angle = torch.tensor([- torch.pi / 2], device=self.device) 
-        
-        self.hand_to_target_diff_rot = torch.zeros_like(self.base_quat, device=self.device)
-        self.hand_to_target_diff_pos = torch.zeros_like(self.base_pos, device=self.device)
       
 
         # joint positions offsets and PD gains
@@ -133,7 +144,7 @@ class G1KnobRobot_6(G1Robot):
                 self.d_gains[i] = 0.
                 if self.cfg.control.control_type in ["P", "V"]:
                     print(f"PD gain of joint {name} were not defined, setting them to zero")
-        self.default_dof_pos = self.default_dof_pos.unsqueeze(0)
+        self.default_dof_pos = self.default_dof_pos
         
     
     def _prepare_reward_function(self):
@@ -332,24 +343,24 @@ class G1KnobRobot_6(G1Robot):
         
         # reset DOF states
         """ Resets DOF position and velocities of selected environmments"""
-        self.dof_pos_g1[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof_g1), device=self.device)
-        self.dof_vel_g1[env_ids] = 0.
+        # self.dof_pos_g1[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof_g1), device=self.device)
+        self.dof_pos_g1[env_ids] = self.default_dof_pos
+        self.dof_vel_g1[env_ids] = 0.0
         
         # Reset knob to clockwise extreme
-        knob_lower_limits = torch.tensor([-1.5707963267948966], device=self.device)  # Full clockwise rotation
-        self.dof_state_knob[env_ids, 0, 0] = knob_lower_limits 
-        self.dof_state_knob[env_ids, 0, 1] = 0.0 
-
+        self.dof_pos_knob[env_ids] = self.knob_initial_angle 
+        self.dof_vel_knob[env_ids] = 0.0 
+        
         env_ids_int32 = env_ids.to(dtype=torch.int32)
         self.gym.set_dof_state_tensor_indexed(self.sim,
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
-
+            
         # reset buffers
         self.network_output_actions[env_ids] = 0.
-        self.real_dof_control_pos_target[env_ids] = 0.
-        self.last_network_output_actions[env_ids] = 0.
-        self.last_dof_vel[env_ids] = 0.
+        # self.real_dof_control_pos_target[env_ids] = 0.
+        # self.last_network_output_actions[env_ids] = 0.
+        # self.last_dof_vel[env_ids] = 0.
         self.episode_length_buf[env_ids] = 0
         self.reset_buf[env_ids] = 0 ################################################## CONFUSE...... 0? ##################################################
         # fill extras
@@ -377,15 +388,12 @@ class G1KnobRobot_6(G1Robot):
         self.gym.refresh_dof_state_tensor(self.sim)
         self.gym.refresh_rigid_body_state_tensor(self.sim)
         self.gym.refresh_jacobian_tensors(self.sim)
-        self.gym.refresh_net_contact_force_tensor(self.sim)
+        # self.gym.refresh_net_contact_force_tensor(self.sim)
         
     def pre_physics_step(self, actions):
         network_output_actions = actions.clone().to(self.device) # shape = (num_envs, num_actions); values = [-1, 1]
         
-        ############ Test ############
-        # self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = network_output_actions[:, 6:]
-        # Hand temporary dof pos target
-        self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = 0
+        self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = self.dof_pos_g1[:, self.right_hand_index_0_joint_handle: self.right_hand_thumb_2_joint_handle+1] + network_output_actions[:, 6:] * self.dt * self.cfg.control.action_scale
         
         self._apply_actions_as_ctrl_targets(actions=network_output_actions[:, :6], do_scale=True)
 
@@ -395,8 +403,6 @@ class G1KnobRobot_6(G1Robot):
         
     def _apply_actions_as_ctrl_targets(self, actions, do_scale=True, clamp_rot=True, clamp_rot_thresh=1.0e-6, do_force_ctrl=False):
         """Apply actions from policy as position/rotation targets."""
-        self.g1_right_hand_pos = self.rigid_body_states[:, self.g1_right_hand_handle, 0:3]
-        self.g1_right_hand_quat = self.rigid_body_states[:, self.g1_right_hand_handle, 3:7]
         
         # Interpret actions as target pos displacements and set pos target
         pos_actions = actions[:, 0:3]
@@ -419,19 +425,11 @@ class G1KnobRobot_6(G1Robot):
                                            torch.tensor([0.0, 0.0, 0.0, 1.0], device=self.device).repeat(self.num_envs,
                                                                                                          1))
         self.ctrl_target_hand_quat = quat_mul(rot_actions_quat, self.g1_right_hand_quat)
-        ############ Test ############
-        self.ctrl_target_hand_pos = self.global_knob_hand_reach_pos
-        self.ctrl_target_hand_quat = self.global_knob_hand_reach_rot
-        
-        # Solve the errors
-        self.g1_right_hand_rot_inv, self.g1_right_hand_pos_inv = tf_inverse(self.g1_right_hand_quat, self.g1_right_hand_pos)
-        self.hand_to_target_diff_rot[:], self.hand_to_target_diff_pos[:] = tf_combine(
-            self.global_knob_hand_reach_rot, self.global_knob_hand_reach_pos, self.g1_right_hand_rot_inv, self.g1_right_hand_pos_inv
-        )
-        print(self.hand_to_target_diff_pos[0])
-        print(self.hand_to_target_diff_rot[0])
-        ############ Test ############
-        
+        # ############ Test ############
+        # self.ctrl_target_hand_pos = self.global_knob_hand_reach_pos
+        # self.ctrl_target_hand_quat = self.global_knob_hand_reach_rot
+        # ############ Test ############
+                
         # According Factory "if do_force_ctrl" part not included here
         # if do_force_ctrl:
         
@@ -481,24 +479,27 @@ class G1KnobRobot_6(G1Robot):
         self.network_output_actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         self.pre_physics_step(self.network_output_actions)
         
-        # Visualize the hand reach point
-        self.gym.clear_lines(self.viewer)
-        for i in range(self.num_envs):
-            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
-            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
-            self.global_hand_pose.p = gymapi.Vec3(*self.g1_right_hand_pos[i].cpu().numpy())
-            self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
-            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
-            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+        # # Visualize the hand reach point
+        # self.gym.clear_lines(self.viewer)
+        # for i in range(self.num_envs):
+        #     gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
+        #     gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
+        #     self.global_hand_pose.p = gymapi.Vec3(*self.g1_right_hand_pos[i].cpu().numpy())
+        #     self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
+        #     gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+        #     gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
     
         # step physics and render each frame
         self.render()
+        
+        env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
+        self.reset_idx(env_ids)        
+        
         for _ in range(self.cfg.control.decimation):
             
             # self._compute_torques(self.real_dof_control_pos_target)
             self._compute_dof_tartget_pos(self.real_dof_control_pos_target)
             # self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
-            # import ipdb; ipdb.set_trace()
             self.gym.simulate(self.sim)
             if self.cfg.env.test:
                 elapsed_time = self.gym.get_elapsed_time(self.sim)
@@ -537,26 +538,36 @@ class G1KnobRobot_6(G1Robot):
         self.common_step_counter += 1
 
         # prepare quantities
-        self.base_pos[:] = self.root_states_g1[:, 0:3]
-        self.base_quat[:] = self.root_states_g1[:, 3:7]
-        self.rpy[:] = get_euler_xyz_in_tensor(self.base_quat[:])
-        self.base_lin_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 7:10])
-        self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 10:13])
-        self.projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
+        # self.base_pos[:] = self.root_states_g1[:, 0:3]
+        # self.base_quat[:] = self.root_states_g1[:, 3:7]
+        # self.rpy[:] = get_euler_xyz_in_tensor(self.base_quat[:])
+        # self.base_lin_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 7:10])
+        # self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 10:13])
+        # self.projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
 
-        self._post_physics_step_callback()
+        # knob pose
+        self.knob_pos = self.rigid_body_states[:, self.knob_handle][:, 0:3]
+        self.knob_rot = self.rigid_body_states[:, self.knob_handle][:, 3:7] 
+        
+        self.hand_to_global_knob_hand_reach_pos = self.global_knob_hand_reach_pos - self.g1_right_hand_pos
+        self.hand_to_global_knob_hand_reach_dist = torch.norm(self.hand_to_global_knob_hand_reach_pos, dim=-1)
+        
+        # compute knob angle and velocity
+        self.knob_angle = self.dof_pos_knob  # current knob angle
+        self.knob_angle_to_target = self.knob_target_angle - self.knob_angle  # difference between knob angle and target angle
+        
+        # self._post_physics_step_callback()
 
         # compute observations, rewards, resets, ...
         self.check_termination()
-        self.compute_reward()
-        env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
-        self.reset_idx(env_ids)
-
         self.compute_observations() # in some cases a simulation step might be required to refresh some obs (for example body positions)
+        self.compute_reward()
 
-        self.last_network_output_actions[:] = self.network_output_actions[:]
-        self.last_dof_vel[:] = self.dof_vel_g1[:]
-        self.last_root_vel[:] = self.root_states_g1[:, 7:13]
+        self.plotJuggler_plot()
+
+        # self.last_network_output_actions[:] = self.network_output_actions[:]
+        # self.last_dof_vel[:] = self.dof_vel_g1[:]
+        # self.last_root_vel[:] = self.root_states_g1[:, 7:13]
         
         
         
@@ -575,65 +586,100 @@ class G1KnobRobot_6(G1Robot):
         """ Check if environments need to be reset
         """
         # self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
-        self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1])>1.0, torch.abs(self.rpy[:,0])>0.8)
-        self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
-        self.reset_buf |= self.time_out_buf
+        # self.reset_buf |= torch.logical_or(torch.abs(self.rpy[:,1])>1.0, torch.abs(self.rpy[:,0])>0.8)
+        # self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
+        # self.reset_buf |= self.time_out_buf
+                
+        self.reset_buf = (torch.squeeze(self.dof_pos_knob, -1) >= self.knob_target_angle)
+        self.reset_buf |= (self.hand_to_global_knob_hand_reach_dist > 0.05)
+        self.reset_buf |= (self.episode_length_buf >= self.max_episode_length) # no terminal reward for time-outs
         
+    def plotJuggler_plot(self):
+        self.data_publisher.publish({
+            'current_knob_angle': self.dof_pos_knob[0],
+        })
         
     def compute_observations(self):
         """ Computes observations
         """
-        sin_phase = torch.sin(2 * np.pi * self.phase ).unsqueeze(1)
-        cos_phase = torch.cos(2 * np.pi * self.phase ).unsqueeze(1)
-        self.obs_buf = torch.cat((  self.base_ang_vel  * self.obs_scales.ang_vel,
-                                    self.projected_gravity,
-                                    (self.dof_pos_g1 - self.default_dof_pos) * self.obs_scales.dof_pos,
-                                    self.dof_vel_g1 * self.obs_scales.dof_vel,
-                                    self.network_output_actions,
-                                    sin_phase,
-                                    cos_phase
+        # sin_phase = torch.sin(2 * np.pi * self.phase ).unsqueeze(1)
+        # cos_phase = torch.cos(2 * np.pi * self.phase ).unsqueeze(1)
+        # self.obs_buf = torch.cat((  self.base_ang_vel  * self.obs_scales.ang_vel,
+        #                             self.projected_gravity,
+        #                             (self.dof_pos_g1 - self.default_dof_pos) * self.obs_scales.dof_pos,
+        #                             self.dof_vel_g1 * self.obs_scales.dof_vel,
+        #                             self.network_output_actions,
+        #                             # sin_phase,
+        #                             # cos_phase
+        #                             ),dim=-1)
+        # self.privileged_obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
+        #                             self.base_ang_vel  * self.obs_scales.ang_vel,
+        #                             self.projected_gravity,
+        #                             (self.dof_pos_g1 - self.default_dof_pos) * self.obs_scales.dof_pos,
+        #                             self.dof_vel_g1 * self.obs_scales.dof_vel,
+        #                             self.network_output_actions,
+        #                             # sin_phase,
+        #                             # cos_phase
+        #                             ),dim=-1)
+        
+        self.obs_buf = torch.cat((  
+                                                self.g1_right_hand_pos, # Dim = 3
+                                                self.g1_right_hand_quat, # Dim = 4
+                                                (self.g1_right_hand_7_dofs_pos - self.default_dof_pos[self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]) * self.obs_scales.dof_pos, # Dim = 7
+                                                self.network_output_actions, # Dim = 13
+                                                self.hand_to_global_knob_hand_reach_dist.unsqueeze(-1), # Dim = 1
+                                                self.knob_angle, # Dim = 1
+                                                self.knob_angle_to_target, # Dim = 1
+                                                
+                                                # sin_phase,
+                                                # cos_phase
                                     ),dim=-1)
-        self.privileged_obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
-                                    self.base_ang_vel  * self.obs_scales.ang_vel,
-                                    self.projected_gravity,
-                                    (self.dof_pos_g1 - self.default_dof_pos) * self.obs_scales.dof_pos,
-                                    self.dof_vel_g1 * self.obs_scales.dof_vel,
-                                    self.network_output_actions,
-                                    sin_phase,
-                                    cos_phase
+        
+        self.privileged_obs_buf = torch.cat((
+                                                self.g1_right_hand_pos, # Dim = 3
+                                                self.g1_right_hand_quat, # Dim = 4
+                                                (self.g1_right_hand_7_dofs_pos - self.default_dof_pos[self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]) * self.obs_scales.dof_pos, # Dim = 7
+                                                self.g1_right_hand_7_dofs_vel * self.obs_scales.dof_vel, # Dim = 7
+                                                self.network_output_actions, # Dim = 13
+                                                self.hand_to_global_knob_hand_reach_dist.unsqueeze(-1), # Dim = 1
+                                                self.knob_angle, # Dim = 1
+                                                self.knob_angle_to_target, # Dim = 1
+                                                
+                                                # sin_phase,
+                                                # cos_phase
                                     ),dim=-1)
+        
         # add perceptive inputs if not blind
         # add noise if needed
         
 
     
-    def _compute_torques(self, actions):
-        """ Compute torques from actions.
-            Actions can be interpreted as position or velocity targets given to a PD controller, or directly as scaled torques.
-            [NOTE]: torques must have the same dimension as the number of DOFs, even if some DOFs are not actuated.
+    # def _compute_torques(self, actions):
+    #     """ Compute torques from actions.
+    #         Actions can be interpreted as position or velocity targets given to a PD controller, or directly as scaled torques.
+    #         [NOTE]: torques must have the same dimension as the number of DOFs, even if some DOFs are not actuated.
 
-        Args:
-            actions (torch.Tensor): Actions
+    #     Args:
+    #         actions (torch.Tensor): Actions
 
-        Returns:
-            [torch.Tensor]: Torques sent to the simulation
-        """
-        #pd controller
-        self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
-        actions_scaled = actions * self.cfg.control.action_scale
-        control_type = self.cfg.control.control_type
-        if control_type=="P":
-            # import ipdb; ipdb.set_trace()
-            torques = self.p_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(actions_scaled + self.default_dof_pos.squeeze()[self.right_shoulder_pitch_joint_handle:self.num_dof_g1] - self.dof_pos_g1[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1]) - self.d_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*self.dof_vel_g1[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1]
-        elif control_type=="V":
-            torques = self.p_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(actions_scaled - self.dof_vel_g1[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]) - self.d_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(self.dof_vel_g1[self.right_shoulder_pitch_joint_handle:self.num_dof_g1] - self.last_dof_vel[self.right_shoulder_pitch_joint_handle:self.num_dof_g1])/self.sim_params.dt
-        elif control_type=="T":
-            torques = actions_scaled
-        else:
-            raise NameError(f"Unknown controller type: {control_type}")
+    #     Returns:
+    #         [torch.Tensor]: Torques sent to the simulation
+    #     """
+    #     #pd controller
+    #     self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
+    #     actions_scaled = actions * self.cfg.control.action_scale
+    #     control_type = self.cfg.control.control_type
+    #     if control_type=="P":
+    #         torques = self.p_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(actions_scaled + self.default_dof_pos.squeeze()[self.right_shoulder_pitch_joint_handle:self.num_dof_g1] - self.dof_pos_g1[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1]) - self.d_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*self.dof_vel_g1[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1]
+    #     elif control_type=="V":
+    #         torques = self.p_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(actions_scaled - self.dof_vel_g1[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]) - self.d_gains[self.right_shoulder_pitch_joint_handle:self.num_dof_g1]*(self.dof_vel_g1[self.right_shoulder_pitch_joint_handle:self.num_dof_g1] - self.last_dof_vel[self.right_shoulder_pitch_joint_handle:self.num_dof_g1])/self.sim_params.dt
+    #     elif control_type=="T":
+    #         torques = actions_scaled
+    #     else:
+    #         raise NameError(f"Unknown controller type: {control_type}")
         
-        clipped_torques = torch.clip(torques, -self.torque_limits[self.right_shoulder_pitch_joint_handle:self.num_dof_g1], self.torque_limits[self.right_shoulder_pitch_joint_handle:self.num_dof_g1])
-        self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = clipped_torques
+    #     clipped_torques = torch.clip(torques, -self.torque_limits[self.right_shoulder_pitch_joint_handle:self.num_dof_g1], self.torque_limits[self.right_shoulder_pitch_joint_handle:self.num_dof_g1])
+    #     self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = clipped_torques
     
     
     def compute_reward(self):
@@ -662,71 +708,106 @@ class G1KnobRobot_6(G1Robot):
 
 
 
-
-
-
-
-
-
-
     
     
         #------------ reward functions----------------
-    def _reward_lin_vel_z(self):
-        # Penalize z axis base linear velocity
-        return torch.square(self.base_lin_vel[:, 2])
-    
-    def _reward_ang_vel_xy(self):
-        # Penalize xy axes base angular velocity
-        return torch.sum(torch.square(self.base_ang_vel[:, :2]), dim=1)
-    
-    def _reward_orientation(self):
-        # Penalize non flat base orientation
-        return torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1)
+        
+    def _reward_knob_rotation(self):
+        this_reward = 0
+        dof_pos_knob = torch.squeeze(self.dof_pos_knob, -1)
+        
+        knob_rotation_percentage = torch.clamp(((dof_pos_knob - self.knob_initial_angle) / (self.knob_target_angle - self.knob_initial_angle)), 0.0, 1.0)
+        this_reward += 10 * (knob_rotation_percentage - self.last_knob_rotation_percentage)
+        self.knob_rotate_reward_buf += this_reward
+        self.last_knob_rotation_percentage = knob_rotation_percentage
+        
+        return this_reward
 
-    def _reward_base_height(self):
-        # Penalize base height away from target
-        base_height = self.root_states_g1[:, 2]
-        return torch.square(base_height - self.cfg.rewards.base_height_target)
+    def _reward_hand_to_knob(self):
+        pass
     
-    def _reward_torques(self):
-        # Penalize torques
-        return torch.sum(torch.square(self.torques), dim=1)
+    
 
-    def _reward_dof_vel(self):
-        # Penalize dof velocities
-        return torch.sum(torch.square(self.dof_vel_g1), dim=1)
-    
-    def _reward_dof_acc(self):
-        # Penalize dof accelerations
-        return torch.sum(torch.square((self.last_dof_vel - self.dof_vel_g1) / self.dt), dim=1)
-    
-    def _reward_action_rate(self):
-        # Penalize changes in actions
-        return torch.sum(torch.square(self.last_network_output_actions - self.network_output_actions), dim=1)
-    
-    def _reward_termination(self):
-        # Terminal reward / penalty
-        return self.reset_buf * ~self.time_out_buf
-    
-    def _reward_dof_pos_limits(self):
-        # Penalize dof positions too close to the limit
-        out_of_limits = -(self.dof_pos_g1 - self.dof_pos_limits[:, 0]).clip(max=0.) # lower limit
-        out_of_limits += (self.dof_pos_g1 - self.dof_pos_limits[:, 1]).clip(min=0.)
-        return torch.sum(out_of_limits, dim=1)
 
-    def _reward_dof_vel_limits(self):
-        # Penalize dof velocities too close to the limit
-        # clip to max error = 1 rad/s per joint to avoid huge penalties
-        return torch.sum((torch.abs(self.dof_vel_g1) - self.dof_vel_limits*self.cfg.rewards.soft_dof_vel_limit).clip(min=0., max=1.), dim=1)
+    # # Inherit from G1 locomotion's reward functions, can use or not use them
+    # def _reward_dof_acc(self):
+    #     # Penalize dof accelerations
+    #     return torch.sum(torch.square((self.last_dof_vel - self.dof_vel_g1) / self.dt), dim=1)
 
-    def _reward_torque_limits(self):
-        # penalize torques too close to the limit
-        return torch.sum((torch.abs(self.torques) - self.torque_limits*self.cfg.rewards.soft_torque_limit).clip(min=0.), dim=1)
+    # def _reward_dof_vel(self):
+    #     # Penalize dof velocities
+    #     return torch.sum(torch.square(self.dof_vel_g1), dim=1)
+
+    # def _reward_action_rate(self):
+    #     # Penalize changes in actions
+    #     return torch.sum(torch.square(self.last_network_output_actions - self.network_output_actions), dim=1)
     
-    def _reward_alive(self):
-        # Reward for staying alive
-        return 1.0
+    # def _reward_dof_pos_limits(self):
+    #     # Penalize dof positions too close to the limit
+    #     out_of_limits = -(self.dof_pos_g1 - self.dof_pos_limits[:, 0]).clip(max=0.) # lower limit
+    #     out_of_limits += (self.dof_pos_g1 - self.dof_pos_limits[:, 1]).clip(min=0.)
+    #     return torch.sum(out_of_limits, dim=1)
+   
+    # def _reward_termination(self):
+    #     # Terminal reward / penalty
+    #     return self.reset_buf * ~self.time_out_buf
+
+
+
+
+
     
-    def _reward_hip_pos(self):
-        return torch.sum(torch.square(self.dof_pos_g1[:,[1,2,7,8]]), dim=1)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # # Archived unused G1 locomotion reward functions
+    # def _reward_orientation(self):
+    #     # Penalize non flat base orientation
+    #     return torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1)
+    
+    # def _reward_torques(self):
+    #     # Penalize torques
+    #     return torch.sum(torch.square(self.torques), dim=1)    
+    
+    # def _reward_lin_vel_z(self):
+    #     # Penalize z axis base linear velocity
+    #     return torch.square(self.base_lin_vel[:, 2])
+    
+    # def _reward_ang_vel_xy(self):
+    #     # Penalize xy axes base angular velocity
+    #     return torch.sum(torch.square(self.base_ang_vel[:, :2]), dim=1)    
+    
+    # def _reward_base_height(self):
+    #     # Penalize base height away from target
+    #     base_height = self.root_states_g1[:, 2]
+    #     return torch.square(base_height - self.cfg.rewards.base_height_target)    
+    
+    # def _reward_dof_vel_limits(self):
+    #     # Penalize dof velocities too close to the limit
+    #     # clip to max error = 1 rad/s per joint to avoid huge penalties
+    #     return torch.sum((torch.abs(self.dof_vel_g1) - self.dof_vel_limits*self.cfg.rewards.soft_dof_vel_limit).clip(min=0., max=1.), dim=1)    
+    
+    # def _reward_torque_limits(self):
+    #     # penalize torques too close to the limit
+    #     return torch.sum((torch.abs(self.torques) - self.torque_limits*self.cfg.rewards.soft_torque_limit).clip(min=0.), dim=1)    
+    
+    # def _reward_alive(self):
+    #     # Reward for staying alive
+    #     return 1.0
+    
+    # def _reward_hip_pos(self):
+    #     return torch.sum(torch.square(self.dof_pos_g1[:,[1,2,7,8]]), dim=1)

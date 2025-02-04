@@ -44,22 +44,22 @@ class G1KnobCfg_6( G1RobotCfg ):
         'left_hand_thumb_2_joint' : 0.,   # index: 28
 
         # 7 DOFs of right arm
-        'right_shoulder_pitch_joint' : 0., # index: 29
-        'right_shoulder_roll_joint' : 0.,  # index: 30
-        'right_shoulder_yaw_joint' : 0.,   # index: 31
-        'right_elbow_joint' : 0.,          # index: 32
-        'right_wrist_roll_joint' : 0.,     # index: 33
-        'right_wrist_pitch_joint' : 0.,    # index: 34
-        'right_wrist_yaw_joint' : 0.,      # index: 35
+        'right_shoulder_pitch_joint' : -8.5795e-01,  # index: 29
+        'right_shoulder_roll_joint'   :  8.7773e-02,  # index: 30
+        'right_shoulder_yaw_joint'    : -4.8131e-01,  # index: 31
+        'right_elbow_joint'           :  7.1448e-01,  # index: 32
+        'right_wrist_roll_joint'      : -3.1350e-01,  # index: 33
+        'right_wrist_pitch_joint'     :  4.9403e-02,  # index: 34
+        'right_wrist_yaw_joint'       : -1.0966e+00,  # index: 35
 
         # 7 DOFs of right hand
-        'right_hand_index_0_joint' : 0.,   # index: 36
-        'right_hand_index_1_joint' : 0.,   # index: 37
-        'right_hand_middle_0_joint' : 0.,  # index: 38
-        'right_hand_middle_1_joint' : 0.,  # index: 39
-        'right_hand_thumb_0_joint' : 0.,   # index: 40
-        'right_hand_thumb_1_joint' : 0.,   # index: 41
-        'right_hand_thumb_2_joint' : 0.,   # index: 42
+        'right_hand_index_0_joint'    :  1.3279e+00,  # index: 36
+        'right_hand_index_1_joint'    :  8.7252e-02,  # index: 37
+        'right_hand_middle_0_joint'   :  1.4922e+00,  # index: 38
+        'right_hand_middle_1_joint'   :  9.6682e-01,  # index: 39
+        'right_hand_thumb_0_joint'    :  8.7389e-01,  # index: 40
+        'right_hand_thumb_1_joint'    :  5.7318e-01,  # index: 41
+        'right_hand_thumb_2_joint'    : -2.4037e-01,  # index: 42
 
         }
         
@@ -68,8 +68,8 @@ class G1KnobCfg_6( G1RobotCfg ):
         
     
     class env(G1RobotCfg.env):
-        num_observations = 107
-        num_privileged_obs = 110
+        num_observations = 30
+        num_privileged_obs = 37
         num_actions = 13 # 6 + 7 (6 for the hand pos&rot, 7 for the fingers' DOFs)
 
 
@@ -114,12 +114,12 @@ class G1KnobCfg_6( G1RobotCfg ):
                      'hand': 2,
                      }  # [N*m/rad]  # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 0.25
+        action_scale = 0.1
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
     class asset_g1( G1RobotCfg.asset_g1 ):
-        file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_29dof_with_hand.urdf'
+        file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_29dof_with_hand_with_keypoints.urdf'
         name = "g1"
         foot_name = "ankle_roll"
         penalize_contacts_on = ["hip", "knee"]
@@ -139,18 +139,21 @@ class G1KnobCfg_6( G1RobotCfg ):
         base_height_target = 0.78
         
         class scales( G1RobotCfg.rewards.scales ):
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
-            orientation = -1.0
-            torques = -0.00001
-            base_height = -10.0
-            dof_acc = -2.5e-7
-            dof_vel = -1e-3
-            collision = 0.0
-            action_rate = -0.01
-            dof_pos_limits = -5.0
-            alive = 0.15
-            hip_pos = -1.0
+            
+            knob_rotation = 1.0
+
+            # dof_acc = -2.5e-7
+            # dof_vel = -1e-3
+            # action_rate = -0.01
+            # dof_pos_limits = -5.0
+            
+            # torques = -0.00001            
+            # lin_vel_z = -2.0
+            # ang_vel_xy = -0.05  
+            # base_height = -10.0          
+            # orientation = -1.0            
+            # alive = 0.15
+            # hip_pos = -1.0
 
 class G1KnobCfgPPO_6( G1RobotCfgPPO ):
     class policy:
@@ -168,7 +171,7 @@ class G1KnobCfgPPO_6( G1RobotCfgPPO ):
     class runner( G1RobotCfgPPO.runner ):
         # policy_class_name = "ActorCriticRecurrent"
         policy_class_name = "ActorCritic"
-        max_iterations = 10000
+        max_iterations = 1000
         run_name = ''
         experiment_name = 'g1_knob'
 
