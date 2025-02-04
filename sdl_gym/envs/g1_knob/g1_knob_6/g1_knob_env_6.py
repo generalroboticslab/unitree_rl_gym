@@ -492,10 +492,7 @@ class G1KnobRobot_6(G1Robot):
         #     gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
     
         # step physics and render each frame
-        self.render()
-        
-        env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
-        self.reset_idx(env_ids)        
+        self.render()    
         
         for _ in range(self.cfg.control.decimation):
             
@@ -562,9 +559,10 @@ class G1KnobRobot_6(G1Robot):
 
         # compute observations, rewards, resets, ...
         self.check_termination()
+        env_ids = self.reset_buf.nonzero(as_tuple=False).flatten()
+        self.reset_idx(env_ids) 
         self.compute_observations() # in some cases a simulation step might be required to refresh some obs (for example body positions)
         self.compute_reward()
-
         self.plotJuggler_plot()
 
         # self.last_network_output_actions[:] = self.network_output_actions[:]
