@@ -1,0 +1,7 @@
+Using the g1_29dof_with_hand_with_keypoints.urdf.
+
+This is the first draft of the policy of the turning knob task.
+
+The reward function, observation are super simple.
+
+It works, but still involves reward hacking, needs to be improved by adding the contact sensing.
