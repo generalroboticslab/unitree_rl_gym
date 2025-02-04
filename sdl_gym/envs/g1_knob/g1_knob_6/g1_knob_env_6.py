@@ -41,6 +41,8 @@ class G1KnobRobot_6(G1Robot):
         self.right_hand_index_1_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_joint") # 37
         self.right_hand_thumb_2_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_thumb_2_joint") # 42
         
+        self.global_indices = torch.arange(self.num_envs * 2, dtype=torch.int32, device=self.device).view(self.num_envs, -1)
+        
         knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
         
         local_knob_hand_reach_pose = gymapi.Transform()
@@ -61,7 +63,7 @@ class G1KnobRobot_6(G1Robot):
         self.sphere_rot = gymapi.Quat.from_euler_zyx(0.5 * np.pi, 0, 0)
         sphere_pose = gymapi.Transform(r=self.sphere_rot)
         self.sphere_geom = gymutil.WireframeSphereGeometry(0.08, 12, 12, sphere_pose, color=(1, 1, 0))
-        
+                
     # Is called after super().__init__
     def _init_buffers(self):
         """ Initialize torch tensors which will contain simulation states and processed quantities
@@ -351,10 +353,10 @@ class G1KnobRobot_6(G1Robot):
         self.dof_pos_knob[env_ids] = self.knob_initial_angle 
         self.dof_vel_knob[env_ids] = 0.0 
         
-        env_ids_int32 = env_ids.to(dtype=torch.int32)
+        multi_env_ids_int32 = self.global_indices[env_ids, :2].flatten()
         self.gym.set_dof_state_tensor_indexed(self.sim,
                                               gymtorch.unwrap_tensor(self.dof_state),
-                                              gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
+                                              gymtorch.unwrap_tensor(multi_env_ids_int32), len(multi_env_ids_int32))
             
         # reset buffers
         self.network_output_actions[env_ids] = 0.

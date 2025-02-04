@@ -98,7 +98,7 @@ class G1KnobCfg_6( G1RobotCfg ):
                      'elbow': 40,
                      'wrist': 40,
                      
-                     'hand': 40,
+                     'hand': 5,
                      }  # [N*m/rad]
         damping = {  'hip_yaw': 2,
                      'hip_roll': 2,
