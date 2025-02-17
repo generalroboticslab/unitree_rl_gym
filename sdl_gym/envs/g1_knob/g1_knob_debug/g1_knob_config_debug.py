@@ -1,6 +1,6 @@
-from sdl_gym.envs.g1_knob.g1_knob_7.g1_robot_config_7 import G1RobotCfg, G1RobotCfgPPO
+from sdl_gym.envs.g1_knob.g1_knob_debug.g1_robot_config_debug import G1RobotCfg, G1RobotCfgPPO
 
-class G1KnobCfg_7( G1RobotCfg ):
+class G1KnobCfg_debug( G1RobotCfg ):
     class init_state_g1( G1RobotCfg.init_state_g1 ):
         default_joint_angles = { # = target angles [rad] when action = 0.0
         
@@ -44,22 +44,23 @@ class G1KnobCfg_7( G1RobotCfg ):
         'left_hand_thumb_2_joint' : 0.,   # index: 28
 
         # 7 DOFs of right arm
-        'right_shoulder_pitch_joint' : -8.5795e-01,  # index: 29
-        'right_shoulder_roll_joint'   :  8.7773e-02,  # index: 30
-        'right_shoulder_yaw_joint'    : -4.8131e-01,  # index: 31
-        'right_elbow_joint'           :  7.1448e-01,  # index: 32
-        'right_wrist_roll_joint'      : -3.1350e-01,  # index: 33
-        'right_wrist_pitch_joint'     :  4.9403e-02,  # index: 34
-        'right_wrist_yaw_joint'       : -1.0966e+00,  # index: 35
+        'right_shoulder_pitch_joint' : 0,  # index: 29
+        'right_shoulder_roll_joint'   :  -1.58,  # index: 30
+        # 'right_shoulder_roll_joint'   :  -0.5,  # index: 30
+        'right_shoulder_yaw_joint'    : -1.40,  # index: 31
+        'right_elbow_joint'           :  2.09,  # index: 32
+        'right_wrist_roll_joint'      : -0.80,  # index: 33
+        'right_wrist_pitch_joint'     :  0,  # index: 34
+        'right_wrist_yaw_joint'       : 0,  # index: 35
 
         # 7 DOFs of right hand
-        'right_hand_index_0_joint'    :  1.3279e+00,  # index: 36
-        'right_hand_index_1_joint'    :  8.7252e-02,  # index: 37
-        'right_hand_middle_0_joint'   :  1.4922e+00,  # index: 38
-        'right_hand_middle_1_joint'   :  9.6682e-01,  # index: 39
-        'right_hand_thumb_0_joint'    :  -4.0e-01,  # index: 40
-        'right_hand_thumb_1_joint'    :  -2.0e-01,  # index: 41
-        'right_hand_thumb_2_joint'    : -4.5e-01,  # index: 42
+        'right_hand_index_0_joint'    :  0,  # index: 36
+        'right_hand_index_1_joint'    :  1,  # index: 37
+        'right_hand_middle_0_joint'   :  0,  # index: 38
+        'right_hand_middle_1_joint'   :  1,  # index: 39
+        'right_hand_thumb_0_joint'    :  0,  # index: 40
+        'right_hand_thumb_1_joint'    :  0,  # index: 41
+        'right_hand_thumb_2_joint'    :  -1,  # index: 42
 
         }
         
@@ -68,8 +69,10 @@ class G1KnobCfg_7( G1RobotCfg ):
         
     
     class env(G1RobotCfg.env):
-        num_observations = 21
-        num_privileged_obs = 23
+        # num_observations = 28
+        # num_privileged_obs = 35
+        num_observations = 28
+        num_privileged_obs = 37
         num_actions = 13 # 6 + 7 (6 for the hand pos&rot, 7 for the fingers' DOFs)
 
 
@@ -121,6 +124,7 @@ class G1KnobCfg_7( G1RobotCfg ):
     class asset_g1( G1RobotCfg.asset_g1 ):
         # file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_29dof_with_hand_with_contact_force_sensor.urdf'
         file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_lighter_with_hand_with_contact_force_sensor.urdf'
+        # file = '{SDL_GYM_ROOT_DIR}/resources/robots/g1_description/g1_lighter_with_hand_with_contact_force_sensor_debug.urdf'
         name = "g1"
         foot_name = "ankle_roll"
         penalize_contacts_on = ["hip", "knee"]
@@ -143,12 +147,14 @@ class G1KnobCfg_7( G1RobotCfg ):
         
         class scales( G1RobotCfg.rewards.scales ):
             
+            # knob_rotation = 1.0
             # contact_forces = 1.0
             # fingertips_TO_knob_center_dist = 1.0
-            goal_reached_sparse = 1.0
-            knob_rotation = 1.0
+            # goal_reached_sparse = 1.0
             # contact_force_too_large_penalize = 1.0
-            # hand_to_knob_hand_reach_dist = 1.0
+            hand_to_knob_hand_reach_dist = 1.0
+            # action_rate = 1.0
+            # goal_reach_debug_sparse = 1.0
             
             # termination = 1.0
             
@@ -165,11 +171,11 @@ class G1KnobCfg_7( G1RobotCfg ):
             # alive = 0.15
             # hip_pos = -1.0
 
-class G1KnobCfgPPO_7( G1RobotCfgPPO ):
+class G1KnobCfgPPO_debug( G1RobotCfgPPO ):
     class policy:
         init_noise_std = 0.8
-        actor_hidden_dims = [32, 64, 32]
-        critic_hidden_dims = [32, 64, 32]
+        actor_hidden_dims = [32]
+        critic_hidden_dims = [32]
         activation = 'elu' # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
         # only for 'ActorCriticRecurrent':
         rnn_type = 'lstm'
@@ -181,7 +187,7 @@ class G1KnobCfgPPO_7( G1RobotCfgPPO ):
     class runner( G1RobotCfgPPO.runner ):
         # policy_class_name = "ActorCriticRecurrent"
         policy_class_name = "ActorCritic"
-        max_iterations = 2000
+        max_iterations = 500
         run_name = ''
         experiment_name = 'g1_knob'
 

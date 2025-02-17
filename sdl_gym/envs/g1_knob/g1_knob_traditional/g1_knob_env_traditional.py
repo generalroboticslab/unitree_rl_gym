@@ -1,4 +1,4 @@
-from sdl_gym.envs.g1_knob.g1_knob_7.g1_robot_7 import G1Robot
+from sdl_gym.envs.g1_knob.g1_knob_traditional.g1_robot_traditional import G1Robot
 from sdl_gym import SDL_GYM_ROOT_DIR, envs, SDL_GYM_ENVS_DIR
 import time
 from warnings import WarningMessage
@@ -14,13 +14,13 @@ from sdl_gym.envs.base.base_task import BaseTask
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict, print_g1_dof_index
-from .g1_robot_config_7 import G1RobotCfg
+from .g1_robot_config_traditional import G1RobotCfg
 from ....utils import factory_control as fc
 from datetime import datetime
 import wandb
 from collections import deque
 
-class G1KnobRobot_7(G1Robot):
+class G1KnobRobot_traditional(G1Robot):
     
     # Is called during super().__init__, right after _create_envs()
     def _init_data(self):
@@ -43,11 +43,14 @@ class G1KnobRobot_7(G1Robot):
         self.right_hand_index_1_force_sensor_1_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_force_sensor_1_link")
         self.right_hand_index_1_force_sensor_2_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_force_sensor_2_link")
         self.right_hand_index_1_force_sensor_3_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_force_sensor_3_link")
+        self.right_hand_thumb_2_contact_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_thumb_2_contact_link")
+        self.right_hand_index_1_contact_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_contact_link")
         
         self.waist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_yaw_joint") # 12
         self.waist_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "waist_pitch_joint") # 14
         self.right_shoulder_pitch_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_shoulder_pitch_joint") # 29
         self.right_wrist_yaw_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_yaw_joint") # 35
+        self.right_wrist_roll_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_wrist_roll_joint") # 33
         self.right_hand_index_0_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_0_joint") # 36
         self.right_hand_index_1_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_index_1_joint") # 37
         self.right_hand_thumb_2_joint_handle = self.gym.find_actor_dof_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_thumb_2_joint") # 42
@@ -59,7 +62,8 @@ class G1KnobRobot_7(G1Robot):
         
         knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
         local_knob_hand_reach_pose = gymapi.Transform()
-        local_knob_hand_reach_pose.p = gymapi.Vec3(0.15, -0.03, -0.025)
+        # local_knob_hand_reach_pose.p = gymapi.Vec3(0.15, -0.03, -0.025)
+        local_knob_hand_reach_pose.p = gymapi.Vec3(0.40, 0, 0.20)
         local_knob_hand_reach_pose.r =  gymapi.Quat.from_euler_zyx(0, 0, np.pi * 5 / 8)
         global_knob_hand_reach_pose = knob_pose * local_knob_hand_reach_pose
         self.global_knob_hand_reach_pos = to_torch([global_knob_hand_reach_pose.p.x, global_knob_hand_reach_pose.p.y,
@@ -69,6 +73,7 @@ class G1KnobRobot_7(G1Robot):
         self.global_hand_pose = gymapi.Transform()
         self.global_knob_hand_reach_pose = global_knob_hand_reach_pose
         
+        self.global_2_fingertips_middle_keypoint_pose = gymapi.Transform()
         
         local_knob_center_keypoint_pose = gymapi.Transform()
         local_knob_center_keypoint_pose.p = gymapi.Vec3(0.045, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -76,18 +81,36 @@ class G1KnobRobot_7(G1Robot):
         global_knob_center_keypoint_pose = knob_pose * local_knob_center_keypoint_pose
         self.global_knob_center_keypoint_pos = to_torch([global_knob_center_keypoint_pose.p.x, global_knob_center_keypoint_pose.p.y,
                                                 global_knob_center_keypoint_pose.p.z], device=self.device).repeat((self.num_envs, 1))
-        self.global_knob_center_keypoint_rot = to_torch([global_knob_center_keypoint_pose.r.x, global_knob_center_keypoint_pose.r.y,
+        self.global_knob_center_keypoint_quat = to_torch([global_knob_center_keypoint_pose.r.x, global_knob_center_keypoint_pose.r.y,
                                                 global_knob_center_keypoint_pose.r.z, global_knob_center_keypoint_pose.r.w], device=self.device).repeat((self.num_envs, 1))
         self.global_knob_center_keypoint_pose = global_knob_center_keypoint_pose
         
+        
+        local_knob_center_keypoint_pose_turned = gymapi.Transform()
+        local_knob_center_keypoint_pose_turned.p = gymapi.Vec3(0.045, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        local_knob_center_keypoint_pose_turned.r = gymapi.Quat.from_euler_zyx(np.pi / 2, 0, 0)
+        global_knob_center_keypoint_pose_turned = knob_pose * local_knob_center_keypoint_pose_turned
+        self.global_knob_center_keypoint_pos_turned = to_torch([global_knob_center_keypoint_pose_turned.p.x, global_knob_center_keypoint_pose_turned.p.y,
+                                                global_knob_center_keypoint_pose_turned.p.z], device=self.device).repeat((self.num_envs, 1))
+        self.global_knob_center_keypoint_quat_turned = to_torch([global_knob_center_keypoint_pose_turned.r.x, global_knob_center_keypoint_pose_turned.r.y,
+                                                global_knob_center_keypoint_pose_turned.r.z, global_knob_center_keypoint_pose_turned.r.w], device=self.device).repeat((self.num_envs, 1))
+        self.global_knob_center_keypoint_pose_turned = global_knob_center_keypoint_pose_turned
+        
+        self.target_hand_pose = gymapi.Transform()
+        self.global_2_fingertips_middle_keypoint_goal_pose = gymapi.Transform()
                         
         # Visualization setup
         self.axes_geom = gymutil.AxesGeometry(0.2)
         self.sphere_rot = gymapi.Quat.from_euler_zyx(0.5 * np.pi, 0, 0)
         sphere_pose = gymapi.Transform(r=self.sphere_rot)
         self.sphere_geom = gymutil.WireframeSphereGeometry(0.08, 12, 12, sphere_pose, color=(1, 1, 0))
-
-                
+        
+        # Visualization setup small
+        self.axes_geom_small = gymutil.AxesGeometry(0.02)
+        self.sphere_rot = gymapi.Quat.from_euler_zyx(0.5 * np.pi, 0, 0)
+        sphere_pose = gymapi.Transform(r=self.sphere_rot)
+        self.sphere_geom_small = gymutil.WireframeSphereGeometry(0.002, 12, 12, sphere_pose, color=(1, 1, 0))
+        
     # Is called after super().__init__
     def _init_buffers(self):
         """ Initialize torch tensors which will contain simulation states and processed quantities
@@ -127,6 +150,14 @@ class G1KnobRobot_7(G1Robot):
         self.g1_right_hand_7_dofs_vel = self.dof_vel_g1[:, self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]
         self.right_hand_thumb_2_force_sensor_3_pos = self.rigid_body_states[:, self.right_hand_thumb_2_force_sensor_3_link_handle, 0:3]
         self.right_hand_index_1_force_sensor_3_pos = self.rigid_body_states[:, self.right_hand_index_1_force_sensor_3_link_handle, 0:3]
+        self.right_hand_thumb_2_contact_link_pos = self.rigid_body_states[:, self.right_hand_thumb_2_contact_link_handle, 0:3]
+        self.right_hand_index_1_contact_link_pos = self.rigid_body_states[:, self.right_hand_index_1_contact_link_handle, 0:3]
+        self.global_2_fingertips_middle_keypoint_pos = torch.zeros_like(self.g1_right_hand_pos)
+        self.global_2_fingertips_middle_keypoint_quat = torch.zeros_like(self.g1_right_hand_quat)
+        self.target_hand_quat = torch.zeros_like(self.g1_right_hand_quat)
+        self.target_hand_pos = torch.zeros_like(self.g1_right_hand_pos)
+        self.global_2_fingertips_middle_keypoint_goal_pos = torch.zeros_like(self.g1_right_hand_pos)
+        self.global_2_fingertips_middle_keypoint_goal_quat = torch.zeros_like(self.g1_right_hand_quat)
         
         self._setup_reward_history_buf_and_WandB()        
         
@@ -151,7 +182,7 @@ class G1KnobRobot_7(G1Robot):
         # self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         self.knob_target_angle = torch.tensor([1.0 * torch.pi], device=self.device) 
         self.knob_initial_angle = torch.tensor([0 * torch.pi], device=self.device) 
-      
+        
 
         # joint positions offsets and PD gains
         self.default_dof_pos = torch.zeros(self.num_dofs_g1, dtype=torch.float, device=self.device, requires_grad=False)
@@ -171,8 +202,8 @@ class G1KnobRobot_7(G1Robot):
                 if self.cfg.control.control_type in ["P", "V"]:
                     print(f"PD gain of joint {name} were not defined, setting them to zero")
         self.default_dof_pos = self.default_dof_pos
-    
-    
+        
+            
     def _setup_reward_history_buf_and_WandB(self):
         if self.cfg.env.if_log_wandb and not self.cfg.env.test:
             wandb.init(
@@ -410,6 +441,11 @@ class G1KnobRobot_7(G1Robot):
         self.dof_pos_knob[env_ids] = self.knob_initial_angle 
         self.dof_vel_knob[env_ids] = 0.0 
         
+        self.target_hand_quat[env_ids] = self.target_hand_quat_helper[env_ids]
+        self.target_hand_pos[env_ids] = self.target_hand_pos_helper[env_ids]
+        euler_angles = torch.tensor([np.pi / 2, 0, 0], dtype=torch.float32, device=self.device)
+        self.global_2_fingertips_middle_keypoint_goal_quat[env_ids] = quat_from_euler_xyz(*euler_angles).repeat(len(env_ids), 1)
+        
         multi_env_ids_int32 = self.global_indices[env_ids, :2].flatten()
         self.gym.set_dof_state_tensor_indexed(self.sim,
                                               gymtorch.unwrap_tensor(self.dof_state),
@@ -476,7 +512,8 @@ class G1KnobRobot_7(G1Robot):
     def pre_physics_step(self, actions):
         network_output_actions = actions.clone().to(self.device) # shape = (num_envs, num_actions); values = [-1, 1]
         
-        self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = self.dof_pos_g1[:, self.right_hand_index_0_joint_handle: self.right_hand_thumb_2_joint_handle+1] + network_output_actions[:, 6:] * self.dt * self.cfg.control.action_scale
+        # self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = self.dof_pos_g1[:, self.right_hand_index_0_joint_handle: self.right_hand_thumb_2_joint_handle+1] + network_output_actions[:, 6:] * self.dt * self.cfg.control.action_scale
+        self.real_dof_control_pos_target[:, self.right_arm_dofs_num:] = self.default_dof_pos[self.right_hand_index_0_joint_handle: self.right_hand_thumb_2_joint_handle+1]
         
         self._apply_actions_as_ctrl_targets(actions=network_output_actions[:, :6], do_scale=True)
 
@@ -509,8 +546,8 @@ class G1KnobRobot_7(G1Robot):
                                                                                                          1))
         self.ctrl_target_hand_quat = quat_mul(rot_actions_quat, self.g1_right_hand_quat)
         # ############ Test ############
-        # self.ctrl_target_hand_pos = self.global_knob_hand_reach_pos
-        # self.ctrl_target_hand_quat = self.global_knob_hand_reach_rot
+        self.ctrl_target_hand_pos = self.target_hand_pos
+        self.ctrl_target_hand_quat = self.target_hand_quat
         # ############ Test ############
                 
         # According Factory "if do_force_ctrl" part not included here
@@ -549,7 +586,7 @@ class G1KnobRobot_7(G1Robot):
             device=self.device)
          
          self.real_dof_control_pos_target[:, :self.right_arm_dofs_num] = self.ctrl_target_dof_pos
-         
+
         
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -569,6 +606,11 @@ class G1KnobRobot_7(G1Robot):
         # step physics and render each frame
         self.render()    
         
+        det_J = np.linalg.cond(self.right_hand_jacobian[0].cpu().numpy())
+        print(self.right_hand_jacobian[0].shape, det_J)
+        if abs(det_J) < 1e-6:
+            print("Warning: Jacobian determinant is close to zero! Possible singularity.")        
+            
         for _ in range(self.cfg.control.decimation):
             
             # self._compute_torques(self.real_dof_control_pos_target)
@@ -598,17 +640,37 @@ class G1KnobRobot_7(G1Robot):
         self.gym.clear_lines(self.viewer)
         for i in range(self.num_envs):
             # Hand link target pose
-            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
-            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
+            self.target_hand_pose.p = gymapi.Vec3(*self.target_hand_pos[i].cpu().numpy())
+            self.target_hand_pose.r = gymapi.Quat(*self.target_hand_quat[i].cpu().numpy())
+            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.target_hand_pose)
+            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.target_hand_pose)
+            
+            # Hand link target pose: knob hand reach pose
+            # gymutil.draw_lines(self.axes_geom_small, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
+            # gymutil.draw_lines(self.sphere_geom_small, self.gym, self.viewer, self.envs[i], self.global_knob_hand_reach_pose)
             
             # Knob center keypoint pose
             gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_center_keypoint_pose)
             
+            # Keypoint target pose
+            self.global_2_fingertips_middle_keypoint_goal_pose.p = gymapi.Vec3(*self.global_2_fingertips_middle_keypoint_goal_pos[i].cpu().numpy())
+            self.global_2_fingertips_middle_keypoint_goal_pose.r = gymapi.Quat(*self.global_2_fingertips_middle_keypoint_goal_quat[i].cpu().numpy())
+            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_2_fingertips_middle_keypoint_goal_pose)
+            
+            # Knob center keypoint pose
+            # gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_center_keypoint_pose_turned)
+            
             # Hand exact pose
-            self.global_hand_pose.p = gymapi.Vec3(*self.g1_right_hand_pos[i].cpu().numpy())
-            self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
-            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
-            gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+            # self.global_hand_pose.p = gymapi.Vec3(*self.g1_right_hand_pos[i].cpu().numpy())
+            # self.global_hand_pose.r = gymapi.Quat(*self.g1_right_hand_quat[i].cpu().numpy())
+            # gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+            # gymutil.draw_lines(self.sphere_geom, self.gym, self.viewer, self.envs[i], self.global_hand_pose)
+            
+            # 2 fingertips middle keypoint pose
+            self.global_2_fingertips_middle_keypoint_pose.p = gymapi.Vec3(*self.global_2_fingertips_middle_keypoint_pos[i].cpu().numpy())
+            self.global_2_fingertips_middle_keypoint_pose.r = gymapi.Quat(*self.global_2_fingertips_middle_keypoint_quat[i].cpu().numpy())
+            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_2_fingertips_middle_keypoint_pose)
+            gymutil.draw_lines(self.sphere_geom_small, self.gym, self.viewer, self.envs[i], self.global_2_fingertips_middle_keypoint_pose)
             
             
     ############################# Test #############################
@@ -618,7 +680,8 @@ class G1KnobRobot_7(G1Robot):
         
         # Just for test when handmade the start DoF pos
         # self.input_sim_actions_vectors[:, : self.num_dof_g1] = self.default_dof_pos
-        
+        # self.input_sim_actions_vectors[:, self.right_wrist_roll_joint_handle] = -1.97
+                
         self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
     ############################# Test #############################
 
@@ -627,7 +690,8 @@ class G1KnobRobot_7(G1Robot):
             calls self._post_physics_step_callback() for common computations 
             calls self._draw_debug_vis() if needed
         """
-
+        self._refresh_tensors()
+        self.compute_all_useful_data_after_refresh()
         self.episode_length_buf += 1
         self.common_step_counter += 1
 
@@ -639,8 +703,6 @@ class G1KnobRobot_7(G1Robot):
         # self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states_g1[:, 10:13])
         # self.projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         
-        self._refresh_tensors()
-        self.compute_all_useful_data_after_refresh()
         # self._post_physics_step_callback()
 
         # compute observations, rewards, resets, ...
@@ -690,17 +752,101 @@ class G1KnobRobot_7(G1Robot):
         self.thumb_force_sensor_3_TO_knob_center_keypoint_dist = torch.norm(self.thumb_force_sensor_3_TO_knob_center_keypoint_pos, dim=-1)
         self.index_force_sensor_3_TO_knob_center_keypoint_pos = self.global_knob_center_keypoint_pos - self.right_hand_index_1_force_sensor_3_pos
         self.index_force_sensor_3_TO_knob_center_keypoint_dist = torch.norm(self.index_force_sensor_3_TO_knob_center_keypoint_pos, dim=-1)
-        # print(f'{self.thumb_force_sensor_3_TO_knob_center_keypoint_dist[0]}, {self.index_force_sensor_3_TO_knob_center_keypoint_dist[0]}')
         
+        # Compute 2 fingertips middle keypoint pose
+        self.global_2_fingertips_middle_keypoint_pos = (self.right_hand_thumb_2_contact_link_pos + self.right_hand_index_1_contact_link_pos) / 2
+        
+        # To compute the fixed Transformation from knob center keypoint to fingertips middle keypoint(actually the hand palm link's original quat)
+        # global_2_fingertips_middle_keypoint_quat_conj = quat_conjugate(self.global_2_fingertips_middle_keypoint_quat)
+        # quat_knob_center_point_to_fingertips_middle_point = quat_mul(self.global_knob_center_keypoint_quat, global_2_fingertips_middle_keypoint_quat_conj)
+        # print(quat_knob_center_point_to_fingertips_middle_point)
+        
+        quat_knob_center_point_to_fingertips_middle_point = torch.tensor([6.1762e-04, -4.5180e-05, -8.3154e-01, 5.5546e-01], dtype=torch.float32, device=self.device).repeat(self.num_envs, 1)
+        self.global_2_fingertips_middle_keypoint_quat = quat_mul(quat_knob_center_point_to_fingertips_middle_point, self.g1_right_hand_quat)
+        
+
+
+        # Compute hand relative pose to fingertips middle keypoint
+        keypoint_inv_quat, keypoint_inv_pos = tf_inverse(self.global_2_fingertips_middle_keypoint_quat, self.global_2_fingertips_middle_keypoint_pos)
+        hand_relative_to_fingertips_quat, hand_relative_to_fingertips_pos = tf_combine(keypoint_inv_quat, keypoint_inv_pos, self.g1_right_hand_quat, self.g1_right_hand_pos)
+        
+        # self.global_2_fingertips_middle_keypoint_goal_quat = quat_mul(quat_from_euler_xyz(*torch.tensor([np.pi / 100, 0, 0], dtype=torch.float32, device=self.device)), self.global_2_fingertips_middle_keypoint_quat)
+        euler_angles = torch.tensor([np.pi / 2, 0, 0], dtype=torch.float32, device=self.device)
+        # import ipdb; ipdb.set_trace()
+        self.global_2_fingertips_middle_keypoint_goal_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), quat_mul(quat_from_euler_xyz(*euler_angles).repeat(self.num_envs, 1), self.global_2_fingertips_middle_keypoint_quat), self.global_2_fingertips_middle_keypoint_goal_quat)
+        
+        self.global_2_fingertips_middle_keypoint_goal_pos = self.global_knob_center_keypoint_pos
+        # compute target hand pose
+        self.target_hand_quat_helper, self.target_hand_pos_helper = tf_combine(
+            self.global_2_fingertips_middle_keypoint_goal_quat, self.global_2_fingertips_middle_keypoint_goal_pos, 
+            hand_relative_to_fingertips_quat, hand_relative_to_fingertips_pos
+        )        
+        self.target_hand_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), self.target_hand_quat_helper, self.target_hand_quat)
+        self.target_hand_pos = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), self.target_hand_pos_helper, self.target_hand_pos)
+        
+        
+        # Test
+        # self.global_2_fingertips_middle_keypoint_pos, self.global_2_fingertips_middle_keypoint_quat = self.compute_midpoint_and_quat(self.right_hand_thumb_2_contact_link_pos, self.right_hand_index_1_contact_link_pos)
+        
+        # # Compute hand relative pose to fingertips middle keypoint
+        # keypoint_inv_quat, keypoint_inv_pos = tf_inverse(self.global_2_fingertips_middle_keypoint_quat, self.global_2_fingertips_middle_keypoint_pos)
+        # hand_relative_quat, hand_relative_pos = tf_combine(keypoint_inv_quat, keypoint_inv_pos, self.g1_right_hand_quat, self.g1_right_hand_pos)
+
+        # # compute target hand pose
+        # self.target_hand_quat, self.target_hand_pos = tf_combine(
+        #     self.global_knob_center_keypoint_quat, self.global_knob_center_keypoint_pos, 
+        #     hand_relative_quat, hand_relative_pos
+        # )
+        # # compute target hand pose
+        # self.target_hand_quat, self.target_hand_pos = tf_combine(
+        #     self.global_knob_hand_reach_rot, self.global_knob_hand_reach_pos, 
+        #     hand_relative_quat, hand_relative_pos
+        # )
+
+    # def normalize(self, v, eps: float = 1e-9):
+    #     return v / v.norm(p=2, dim=-1, keepdim=True).clamp(min=eps)
+
+    # def quat_from_matrix(self, matrix):
+    #     """Convert a 3x3 rotation matrix to a quaternion."""
+    #     m = matrix
+    #     trace = m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2]
+    #     w = torch.sqrt(trace + 1.0) / 2.0
+    #     x = (m[..., 2, 1] - m[..., 1, 2]) / (4.0 * w)
+    #     y = (m[..., 0, 2] - m[..., 2, 0]) / (4.0 * w)
+    #     z = (m[..., 1, 0] - m[..., 0, 1]) / (4.0 * w)
+    #     return torch.stack([x, y, z, w], dim=-1)
+
+    # def compute_midpoint_and_quat(self, point1, point2):
+    #     # 计算中点
+    #     mid_pos = (point1 + point2) / 2.0
+
+    #     # 计算方向向量（z 轴）
+    #     direction = self.normalize(point2 - point1)  # z 轴
+
+    #     # 选一个参考轴（比如世界 y 轴），然后计算 x 轴
+    #     world_y = torch.tensor([0.0, 1.0, 0.0], device=point1.device).expand_as(direction)
+    #     x_axis = normalize(torch.cross(world_y, direction, dim=-1))
+
+    #     # 计算 y 轴
+    #     y_axis = torch.cross(direction, x_axis, dim=-1)
+
+    #     # 组合成旋转矩阵
+    #     rotation_matrix = torch.stack([x_axis, y_axis, direction], dim=-1)  # (3,3)
+
+    #     # 计算四元数
+    #     mid_quat = self.quat_from_matrix(rotation_matrix)
+
+    #     return mid_pos, mid_quat
+    
         
     def check_termination(self):
         """ Check if environments need to be reset
         """
         self.time_out_buf = self.episode_length_buf >= self.max_episode_length # no terminal reward for time-outs                
         self.reset_buf = (torch.squeeze(self.dof_pos_knob, -1) >= self.knob_target_angle)
-        self.reset_buf |= (self.hand_to_global_knob_hand_reach_dist > 0.10)
+        # self.reset_buf |= (self.hand_to_global_knob_hand_reach_dist > 0.10)
         self.reset_buf |= self.time_out_buf # no terminal reward for time-outs
-        self.reset_buf |= torch.logical_or(self.thumb_force_sensor_3_TO_knob_center_keypoint_dist > 0.05, self.index_force_sensor_3_TO_knob_center_keypoint_dist > 0.05)
+        # self.reset_buf |= torch.logical_or(self.thumb_force_sensor_3_TO_knob_center_keypoint_dist > 0.05, self.index_force_sensor_3_TO_knob_center_keypoint_dist > 0.05)
         
     def plotJuggler_plot(self):
         self.data_publisher.publish({
@@ -743,7 +889,7 @@ class G1KnobRobot_7(G1Robot):
                                                 self.g1_right_hand_pos, # Dim = 3
                                                 get_euler_xyz_in_tensor(self.g1_right_hand_quat), # Dim = 3
                                                 # (self.g1_right_hand_7_dofs_pos - self.default_dof_pos[self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]), # Dim = 7
-                                                self.network_output_actions, # Dim = 13
+                                                # self.network_output_actions, # Dim = 13
                                                 # self.hand_to_global_knob_hand_reach_dist.unsqueeze(-1), # Dim = 1
                                                 # self.global_knob_hand_reach_pos, # Dim = 3
                                                 # self.hand_to_global_knob_hand_reach_quat_diff.unsqueeze(-1), # Dim = 1
@@ -761,7 +907,7 @@ class G1KnobRobot_7(G1Robot):
                                                 get_euler_xyz_in_tensor(self.g1_right_hand_quat), # Dim = 3
                                                 # (self.g1_right_hand_7_dofs_pos - self.default_dof_pos[self.right_hand_index_0_joint_handle:self.right_hand_thumb_2_joint_handle+1]), # Dim = 7
                                                 # self.g1_right_hand_7_dofs_vel * self.obs_scales.dof_vel, # Dim = 7
-                                                self.network_output_actions, # Dim = 13
+                                                # self.network_output_actions, # Dim = 13
                                                 # self.hand_to_global_knob_hand_reach_dist.unsqueeze(-1), # Dim = 1
                                                 # self.global_knob_hand_reach_pos, # Dim = 3
                                                 # self.hand_to_global_knob_hand_reach_quat_diff.unsqueeze(-1), # Dim = 1

@@ -45,7 +45,7 @@ class G1RobotCfg(BaseConfig):
 
 
     class init_state_g1:
-        pos = [0.5, -0.1, 0.8] # x,y,z [m]
+        pos = [0.7, -0.1, 0.8] # x,y,z [m]
         rot = [0.0, 0.0, 1.0, 0.0] # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -194,10 +194,11 @@ class G1RobotCfgPPO(BaseConfig):
         value_loss_coef = 1.0
         use_clipped_value_loss = True
         clip_param = 0.2
-        entropy_coef = 0.01
+        # entropy_coef = 0.01
+        entropy_coef = 0.0
         num_learning_epochs = 5
         num_mini_batches = 4 # mini batch size = num_envs*nsteps / nminibatches
-        learning_rate = 5.e-4 #1.e-3
+        learning_rate = 1.e-3 #5.e-4
         schedule = 'adaptive' # could be adaptive, fixed
         gamma = 0.99
         lam = 0.95

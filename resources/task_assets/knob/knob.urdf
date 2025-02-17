@@ -82,9 +82,17 @@
         <child link="knob" />
         <origin rpy="0 0 0" xyz="0 0 0" />
         <axis xyz="1 0 0" />
-        <limit lower="-1.5707963267948966" upper="3.141592653589793" velocity="5" effort="2" />
+        <limit lower="0" upper="12.5663706144" velocity="5" effort="2" />
         <dynamics friction="0.02" damping="0" />
     </joint>
+    <!-- <joint type="continuous" name="actuator_1_joint">
+    <parent link="knob_base" />
+    <child link="knob" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <axis xyz="1 0 0" />
+    <dynamics friction="0.05" damping="0" />
+    </joint> -->
+
     <link name="indicator">
         <visual >
             <origin rpy="0 1.5707963267948966 0" xyz="0.065 0 0.01" />

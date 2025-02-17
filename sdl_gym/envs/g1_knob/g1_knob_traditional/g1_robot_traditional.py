@@ -17,7 +17,7 @@ from sdl_gym.utils.publisher import DataPublisher, DataReceiver
 from sdl_gym.utils.math import wrap_to_pi
 from sdl_gym.utils.isaacgym_utils import get_euler_xyz as get_euler_xyz_in_tensor
 from sdl_gym.utils.helpers import class_to_dict
-from .g1_robot_config_7 import G1RobotCfg
+from .g1_robot_config_traditional import G1RobotCfg
 
 class G1Robot(BaseTask):
     def __init__(self, cfg: G1RobotCfg, sim_params, physics_engine, sim_device, headless):
@@ -55,6 +55,7 @@ class G1Robot(BaseTask):
             self.set_camera(self.cfg.viewer.pos, self.cfg.viewer.lookat)
         self._init_buffers()
         self._prepare_reward_function()
+        self.compute_all_useful_data_after_refresh()
         self.init_done = True
 
         self.reset_idx(torch.arange(self.num_envs, device=self.device))

@@ -33,6 +33,14 @@ from sdl_gym.envs.g1_knob.g1_knob_6.g1_knob_env_6 import G1KnobRobot_6
 from sdl_gym.envs.g1_knob.g1_knob_7.g1_knob_config_7 import G1KnobCfg_7, G1KnobCfgPPO_7
 from sdl_gym.envs.g1_knob.g1_knob_7.g1_knob_env_7 import G1KnobRobot_7
 
+# traditional
+from sdl_gym.envs.g1_knob.g1_knob_traditional.g1_knob_config_traditional import G1KnobCfg_traditional, G1KnobCfgPPO_traditional
+from sdl_gym.envs.g1_knob.g1_knob_traditional.g1_knob_env_traditional import G1KnobRobot_traditional
+
+# debug
+from sdl_gym.envs.g1_knob.g1_knob_debug.g1_knob_config_debug import G1KnobCfg_debug, G1KnobCfgPPO_debug
+from sdl_gym.envs.g1_knob.g1_knob_debug.g1_knob_env_debug import G1KnobRobot_debug
+
 task_registry.register( "g1_knob_1", G1KnobRobot_1, G1KnobCfg_1(), G1KnobCfgPPO_1())
 task_registry.register( "g1_knob_2", G1KnobRobot_2, G1KnobCfg_2(), G1KnobCfgPPO_2())
 task_registry.register( "g1_knob_3", G1KnobRobot_3, G1KnobCfg_3(), G1KnobCfgPPO_3())
@@ -40,7 +48,8 @@ task_registry.register( "g1_knob_4", G1KnobRobot_4, G1KnobCfg_4(), G1KnobCfgPPO_
 task_registry.register( "g1_knob_5", G1KnobRobot_5, G1KnobCfg_5(), G1KnobCfgPPO_5())
 task_registry.register( "g1_knob_6", G1KnobRobot_6, G1KnobCfg_6(), G1KnobCfgPPO_6())
 task_registry.register( "g1_knob_7", G1KnobRobot_7, G1KnobCfg_7(), G1KnobCfgPPO_7())
-
+task_registry.register( "g1_knob_traditional", G1KnobRobot_traditional, G1KnobCfg_traditional(), G1KnobCfgPPO_traditional())
+task_registry.register( "g1_knob_debug", G1KnobRobot_debug, G1KnobCfg_debug(), G1KnobCfgPPO_debug())
 
 
 

@@ -44,23 +44,22 @@ class G1KnobCfg_1( G1RobotCfg ):
         'left_hand_thumb_2_joint' : 0.,   # index: 28
 
         # 7 DOFs of right arm
-        'right_shoulder_pitch_joint' : 0., # index: 29
-        'right_shoulder_roll_joint' : 0.,  # index: 30
-        'right_shoulder_yaw_joint' : 0.,   # index: 31
-        'right_elbow_joint' : 0.,          # index: 32
-        'right_wrist_roll_joint' : 0.,     # index: 33
-        'right_wrist_pitch_joint' : 0.,    # index: 34
-        'right_wrist_yaw_joint' : 0.,      # index: 35
+        'right_shoulder_pitch_joint' : 0,  # index: 29
+        'right_shoulder_roll_joint'   :  -1.58,  # index: 30
+        'right_shoulder_yaw_joint'    : -0.09,  # index: 31
+        'right_elbow_joint'           :  1.44,  # index: 32
+        'right_wrist_roll_joint'      : 0,  # index: 33
+        'right_wrist_pitch_joint'     :  0,  # index: 34
+        'right_wrist_yaw_joint'       : 0,  # index: 35
 
         # 7 DOFs of right hand
-        'right_hand_index_0_joint' : 0.,   # index: 36
-        'right_hand_index_1_joint' : 0.,   # index: 37
-        'right_hand_middle_0_joint' : 0.,  # index: 38
-        'right_hand_middle_1_joint' : 0.,  # index: 39
-        'right_hand_thumb_0_joint' : 0.,   # index: 40
-        'right_hand_thumb_1_joint' : 0.,   # index: 41
-        'right_hand_thumb_2_joint' : 0.,   # index: 42
-
+        'right_hand_index_0_joint'    :  0,  # index: 36
+        'right_hand_index_1_joint'    :  0,  # index: 37
+        'right_hand_middle_0_joint'   :  0,  # index: 38
+        'right_hand_middle_1_joint'   :  0,  # index: 39
+        'right_hand_thumb_0_joint'    :  0,  # index: 40
+        'right_hand_thumb_1_joint'    :  0,  # index: 41
+        'right_hand_thumb_2_joint'    :  0,  # index: 42
         }
         
     class init_state_knob( G1RobotCfg.init_state_knob ):

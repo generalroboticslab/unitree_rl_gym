@@ -523,6 +523,7 @@ class G1KnobRobot_1(G1Robot):
     def _compute_dof_tartget_pos(self, actions):
         self.input_sim_actions_vectors[:, :self.right_shoulder_pitch_joint_handle] = 0
         self.input_sim_actions_vectors[:, self.right_shoulder_pitch_joint_handle:self.num_dof_g1] = actions
+        # self.input_sim_actions_vectors[:, : self.num_dof_g1] = self.default_dof_pos
         
         self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(self.input_sim_actions_vectors))
     ############################# Test #############################
