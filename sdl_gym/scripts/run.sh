@@ -31,7 +31,15 @@
 # python train.py --task=g1_knob_traditional --num_envs=4096
 # python train.py --task=g1_knob_traditional --num_envs=4096 --resume --load_run='Feb12_22-47-10_'
 # Play - Workable 1: Feb04_18-24-43_
-python play.py --task=g1_knob_traditional --num_envs=2 --load_run='Feb13_14-28-28_'
+# python play.py --task=g1_knob_traditional --num_envs=2 --load_run='Feb13_14-28-28_'
+# python play.py --task=g1_knob_traditional --num_envs=128 --load_run='Feb12_22-47-10_' --checkpoint=700
+
+# Policy-traditional-playboard
+# Train
+# python train.py --task=g1_knob_traditional --num_envs=4096
+# python train.py --task=g1_knob_traditional --num_envs=4096 --resume --load_run='Feb12_22-47-10_'
+# Play - Workable 1: Feb04_18-24-43_
+python play.py --task=g1_knob_traditional_playboard --num_envs=2 --load_run='Feb13_14-28-28_'
 # python play.py --task=g1_knob_traditional --num_envs=128 --load_run='Feb12_22-47-10_' --checkpoint=700
 
 # DEBUG

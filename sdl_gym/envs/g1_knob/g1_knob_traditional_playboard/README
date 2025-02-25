@@ -1,0 +1,5 @@
+Using the g1_lighter_with_hand_with_keypoints.urdf.
+
+This is the policy which starts using the contact info.
+
+It works, but still involves reward hacking, needs to be improved.
