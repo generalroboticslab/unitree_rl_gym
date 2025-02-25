@@ -1,0 +1,271 @@
+<?xml version="1.0"?>
+<robot name="knob_exp">
+    <link name="wall_link">
+        <visual >
+            <origin rpy="0 0 3.141592653589793" xyz="0 457.2 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/wall.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.8039 0.6667 0.4902 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 0 3.141592653589793" xyz="0 457.2 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/wall.stl" />
+            </geometry>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 3.141592653589793" xyz="0 457.2 0" />
+            <mass value="100" />
+            <inertia izz="1.0" ixx="1.0" ixy="0.0" ixz="0.0" iyz="0.0" iyy="1.0" />
+        </inertial>
+    </link>
+    <link name="knob_holder_1">
+        <visual >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 79.62899999999999 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_1.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 79.62899999999999 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_1.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.2" />
+            <inertia izz="0.000833" ixx="0.000833" ixy="0" ixz="0" iyz="0" iyy="0.000833" />
+        </inertial>
+    </link>
+    <joint name="knob_holder_1_joint" type="fixed">
+        <parent link="wall_link" />
+        <child link="knob_holder_1" />
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit upper="3.141592653589793" velocity="5" lower="-1.5707963267948966" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_1">
+        <visual >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_1.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.2 0.2 0.2 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_1.stl" />
+            </geometry>
+            <material >
+                <color rgba="1 1 1 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.4" />
+            <inertia izz="0.0001" ixx="0.0001" ixy="0" ixz="0" iyz="0" iyy="0.0001" />
+        </inertial>
+    </link>
+    <joint name="knob_1_joint" type="revolute">
+        <parent link="knob_holder_1" />
+        <child link="knob_1" />
+        <origin rpy="0 0 0" xyz="41 79.62899999999999 365.9124" />
+        <axis xyz="1 0 0" />
+        <limit upper="6.283185307179586" velocity="5" lower="0" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_indicator_1">
+        <visual >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <box size="10 2.5 1" />
+            </geometry>
+            <material >
+                <color rgba="1 0 0 1" />
+            </material>
+        </visual>
+    </link>
+    <joint name="knob_indicator_1_joint_rigid" type="fixed">
+        <parent link="knob_1" />
+        <child link="knob_indicator_1" />
+        <origin rpy="0 0 0" xyz="5 0 6" />
+    </joint>
+    <link name="knob_holder_2">
+        <visual >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 179.62879999999998 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_2.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 179.62879999999998 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_2.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.2" />
+            <inertia izz="0.000833" ixx="0.000833" ixy="0" ixz="0" iyz="0" iyy="0.000833" />
+        </inertial>
+    </link>
+    <joint name="knob_holder_2_joint" type="fixed">
+        <parent link="wall_link" />
+        <child link="knob_holder_1" />
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit upper="3.141592653589793" velocity="5" lower="-1.5707963267948966" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_2">
+        <visual >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_2.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.2 0.2 0.2 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_2.stl" />
+            </geometry>
+            <material >
+                <color rgba="1 1 1 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.4" />
+            <inertia izz="0.0001" ixx="0.0001" ixy="0" ixz="0" iyz="0" iyy="0.0001" />
+        </inertial>
+    </link>
+    <joint name="knob_2_joint" type="revolute">
+        <parent link="knob_holder_2" />
+        <child link="knob_2" />
+        <origin rpy="0 0 0" xyz="27 179.62879999999998 365.9124" />
+        <axis xyz="1 0 0" />
+        <limit upper="6.283185307179586" velocity="5" lower="0" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_indicator_2">
+        <visual >
+            <origin rpy="1.5707963267948966 3.141592653589793 1.5707963267948966" xyz="0 0 0" />
+            <geometry >
+                <box size="10 2.5 1" />
+            </geometry>
+            <material >
+                <color rgba="1 0 0 1" />
+            </material>
+        </visual>
+    </link>
+    <joint name="knob_indicator_2_joint_rigid" type="fixed">
+        <parent link="knob_2" />
+        <child link="knob_indicator_2" />
+        <origin rpy="0 0 0" xyz="10 12 0" />
+    </joint>
+    <link name="knob_holder_3">
+        <visual >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 279.6286 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_3.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 0 -1.5707963267948966" xyz="15 279.6286 365.9124" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_holder_3.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.7 0.7 0.7 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.2" />
+            <inertia izz="0.000833" ixx="0.000833" ixy="0" ixz="0" iyz="0" iyy="0.000833" />
+        </inertial>
+    </link>
+    <joint name="knob_holder_3_joint" type="fixed">
+        <parent link="wall_link" />
+        <child link="knob_holder_1" />
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit upper="3.141592653589793" velocity="5" lower="-1.5707963267948966" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_3">
+        <visual >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_3.stl" />
+            </geometry>
+            <material >
+                <color rgba="0.2 0.2 0.2 1" />
+            </material>
+        </visual>
+        <collision >
+            <origin rpy="0 1.5707963267948966 0" xyz="0 0 0" />
+            <geometry >
+                <mesh scale="1 1 1" filename="meshes/knob_3.stl" />
+            </geometry>
+            <material >
+                <color rgba="1 1 1 1" />
+            </material>
+        </collision>
+        <inertial >
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.4" />
+            <inertia izz="0.0001" ixx="0.0001" ixy="0" ixz="0" iyz="0" iyy="0.0001" />
+        </inertial>
+    </link>
+    <joint name="knob_3_joint" type="revolute">
+        <parent link="knob_holder_3" />
+        <child link="knob_3" />
+        <origin rpy="0 0 0" xyz="27 279.6286 365.9124" />
+        <axis xyz="1 0 0" />
+        <limit upper="6.283185307179586" velocity="5" lower="0" effort="2" />
+        <dynamics damping="0" friction="0.01" />
+    </joint>
+    <link name="knob_indicator_3">
+        <visual >
+            <origin rpy="1.5707963267948966 3.141592653589793 1.5707963267948966" xyz="0 0 0" />
+            <geometry >
+                <box size="10 2.5 1" />
+            </geometry>
+            <material >
+                <color rgba="1 0 0 1" />
+            </material>
+        </visual>
+    </link>
+    <joint name="knob_indicator_3_joint_rigid" type="fixed">
+        <parent link="knob_3" />
+        <child link="knob_indicator_3" />
+        <origin rpy="0 0 0" xyz="19 16 0" />
+    </joint>
+</robot>

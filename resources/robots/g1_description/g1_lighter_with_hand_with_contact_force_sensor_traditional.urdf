@@ -569,7 +569,7 @@
   </link>
 
   <!-- contact force sensor 1 -->
-  <joint name="right_hand_thumb_2_force_sensor_1_joint" type="fixed">
+  <!-- <joint name="right_hand_thumb_2_force_sensor_1_joint" type="fixed">
     <origin xyz="0.00455 0.043 0" rpy="0 1.57 0.35"/>
     <parent link="right_hand_thumb_2_link"/>
     <child link="right_hand_thumb_2_force_sensor_1_link"/>
@@ -597,11 +597,11 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 1 -->
 
   <!-- contact force sensor 2 -->
-  <joint name="right_hand_thumb_2_force_sensor_2_joint" type="fixed">
+  <!-- <joint name="right_hand_thumb_2_force_sensor_2_joint" type="fixed">
     <origin xyz="0.0072 0.028 0.004" rpy="0.25 1.4 0.35"/>
     <parent link="right_hand_thumb_2_link"/>
     <child link="right_hand_thumb_2_force_sensor_2_link"/>
@@ -629,11 +629,11 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 2 -->
 
   <!-- contact force sensor 3 -->
-  <joint name="right_hand_thumb_2_force_sensor_3_joint" type="fixed">
+  <!-- <joint name="right_hand_thumb_2_force_sensor_3_joint" type="fixed">
     <origin xyz="0.0072 0.028 -0.004" rpy="0.25 1.67 0.35"/>
     <parent link="right_hand_thumb_2_link"/>
     <child link="right_hand_thumb_2_force_sensor_3_link"/>
@@ -661,7 +661,7 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 3 -->
 
   <!-- contact touch 1 -->
@@ -681,7 +681,7 @@
          <sphere radius="0.002"/>
       </geometry>
       <material >
-          <color rgba="1 1 0 1" />
+          <color rgba="0 0 1 1" />
       </material>
     </visual>
   </link>
@@ -805,7 +805,7 @@
   </link>
 
     <!-- contact force sensor 4 -->
-  <joint name="right_hand_index_1_force_sensor_1_joint" type="fixed">
+  <!-- <joint name="right_hand_index_1_force_sensor_1_joint" type="fixed">
     <origin xyz="0.043 0.0046 0" rpy="1.57 0 -0.35"/>
     <parent link="right_hand_index_1_link"/>
     <child link="right_hand_index_1_force_sensor_1_link"/>
@@ -833,12 +833,12 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 4 -->
 
 
   <!-- contact force sensor 5 -->
-  <joint name="right_hand_index_1_force_sensor_2_joint" type="fixed">
+  <!-- <joint name="right_hand_index_1_force_sensor_2_joint" type="fixed">
     <origin xyz="0.028 0.0073 0.005" rpy="1.75 0 -0.02"/>
     <parent link="right_hand_index_1_link"/>
     <child link="right_hand_index_1_force_sensor_2_link"/>
@@ -866,11 +866,11 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 5 -->
 
   <!-- contact force sensor 6 -->
-  <joint name="right_hand_index_1_force_sensor_3_joint" type="fixed">
+  <!-- <joint name="right_hand_index_1_force_sensor_3_joint" type="fixed">
     <origin xyz="0.028 0.0073 -0.005" rpy="1.38 0 -0.02"/>
     <parent link="right_hand_index_1_link"/>
     <child link="right_hand_index_1_force_sensor_3_link"/>
@@ -898,7 +898,7 @@
           <color rgba="1 0 0 1" />
       </material>
     </collision>
-  </link>
+  </link> -->
   <!-- contact force sensor 6 -->
 
   <!-- contact touch 2 -->
@@ -918,7 +918,7 @@
          <sphere radius="0.002"/>
       </geometry>
       <material >
-          <color rgba="1 1 0 1" />
+          <color rgba="0 0 1 1" />
       </material>
     </visual>
   </link>

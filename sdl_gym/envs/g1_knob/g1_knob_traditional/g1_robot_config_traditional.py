@@ -6,7 +6,7 @@ class G1RobotCfg(BaseConfig):
         num_envs = 4096
         env_spacing = 5.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
-        episode_length_s = 1 # episode length in seconds
+        episode_length_s = 3 # episode length in seconds
         test = False
         
         dataPublisher_enable = True
