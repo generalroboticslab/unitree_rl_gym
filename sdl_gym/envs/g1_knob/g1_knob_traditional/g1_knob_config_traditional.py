@@ -142,8 +142,7 @@ class G1KnobCfg_traditional( G1RobotCfg ):
         friction = 10.0
         
     class asset_knob (G1RobotCfg.asset_knob):
-        # file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/knob/knob.urdf'
-        file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/playboard/playboard.urdf'
+        file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/knob/knob.urdf'
         name = 'knob'
         default_dof_drive_mode = 0
         friction = 10.0

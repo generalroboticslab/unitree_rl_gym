@@ -34,7 +34,9 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.torso_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "torso_link")
         self.right_shoulder_pitch_link_handle = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_shoulder_pitch_link") # 29
         self.right_wrist_yaw_link_index = self.gym.find_asset_rigid_body_index(self.g1_asset, "right_wrist_yaw_link") # 36
-        self.knob_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob")
+        self.knob_1_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob_1")
+        self.knob_2_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob_2")
+        self.knob_3_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_knob[0], "knob_3")
         self.right_hand_palm_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_palm_link") 
         # Force Sensor Link Handles
         self.right_hand_thumb_2_force_sensor_1_link_handle = self.gym.find_actor_rigid_body_handle(self.envs[0], self.actor_handles_g1[0], "right_hand_thumb_2_force_sensor_1_link")
@@ -62,7 +64,7 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.global_indices = torch.arange(self.num_envs * 2, dtype=torch.int32, device=self.device).view(self.num_envs, -1)
         
         
-        knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_handle)
+        knob_pose = self.gym.get_rigid_transform(self.envs[0], self.knob_1_handle)
         local_knob_hand_reach_pose = gymapi.Transform()
         local_knob_hand_reach_pose.p = gymapi.Vec3(0.15, -0.05, -0.015)
         # local_knob_hand_reach_pose.p = gymapi.Vec3(0.40, 0, 0.20)
@@ -78,7 +80,16 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.global_2_fingertips_middle_keypoint_pose = gymapi.Transform()
         
         local_knob_center_keypoint_pose = gymapi.Transform()
-        local_knob_center_keypoint_pose.p = gymapi.Vec3(0.045, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        # knob_1
+        local_knob_center_keypoint_pose.p = gymapi.Vec3(0.0000005, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        # knob_2
+        # local_knob_center_keypoint_pose.p = gymapi.Vec3(0.01, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        # knob_3
+        # local_knob_center_keypoint_pose.p = gymapi.Vec3(0.01, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
         local_knob_center_keypoint_pose.r = gymapi.Quat(0, 0, 0, 1)
         global_knob_center_keypoint_pose = knob_pose * local_knob_center_keypoint_pose
         self.global_knob_center_keypoint_pos = to_torch([global_knob_center_keypoint_pose.p.x, global_knob_center_keypoint_pose.p.y,
@@ -91,7 +102,7 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         
         
         local_knob_center_keypoint_pose_turned = gymapi.Transform()
-        local_knob_center_keypoint_pose_turned.p = gymapi.Vec3(0.045, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        local_knob_center_keypoint_pose_turned.p = gymapi.Vec3(0.0000005, 0, 0.0) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         local_knob_center_keypoint_pose_turned.r = gymapi.Quat.from_euler_zyx(np.pi / 2, 0, 0)
         global_knob_center_keypoint_pose_turned = knob_pose * local_knob_center_keypoint_pose_turned
         self.global_knob_center_keypoint_pos_turned = to_torch([global_knob_center_keypoint_pose_turned.p.x, global_knob_center_keypoint_pose_turned.p.y,
@@ -142,7 +153,8 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         # self.rpy = get_euler_xyz_in_tensor(self.base_quat)
         # self.base_pos = self.root_states_g1[:self.num_envs, 0:3]
         self.contact_forces = gymtorch.wrap_tensor(net_contact_forces_tensor).view(self.num_envs, -1, 3) # shape: num_envs, num_bodies, xyz axis
-        self.dof_state_knob = self.dof_state.view(self.num_envs, -1, 2)[:, self.num_dof_g1:]
+        # knob_1, knob_2, knob_3 !!!!!!!!!!!!!!!!!!!!!!! TUNE !!!!!!!!!!!!!!!!!!!!!!!
+        self.dof_state_knob = self.dof_state.view(self.num_envs, -1, 2)[:, self.num_dof_g1+0:self.num_dof_g1+1]
         self.dof_pos_knob = self.dof_state_knob[..., 0]
         self.dof_vel_knob = self.dof_state_knob[..., 1]
         self.jacobian = gymtorch.wrap_tensor(jacobian_tensor)
@@ -260,7 +272,7 @@ class G1KnobRobot_traditional_playboard(G1Robot):
     
     def _create_envs(self):
         self._acquire_g1_asset_and_setup()
-        self._acquire_knob_asset_and_setup()
+        self._acquire_playboard_asset_and_setup()
         
         self.envs = []
         for i in range(self.num_envs):
@@ -274,19 +286,27 @@ class G1KnobRobot_traditional_playboard(G1Robot):
             dof_props_g1 = self._process_dof_props_g1(self.dof_props_asset_g1, i)
             self.gym.set_actor_dof_properties(env_handle, actor_handle_g1, dof_props_g1)
             
-            actor_handle_knob = self.gym.create_actor(env_handle, self.knob_asset, self.start_pose_knob, self.cfg.asset_knob.name, i, self.cfg.asset_knob.self_collisions, 0)
-            print(actor_handle_knob)
-            self.gym.set_actor_dof_properties(env_handle, actor_handle_knob, self.dof_props_asset_knob)
+            actor_handle_playboard = self.gym.create_actor(env_handle, self.knob_asset, self.start_pose_knob, self.cfg.asset_playboard.name, i, self.cfg.asset_playboard.self_collisions, 0)
+            self.gym.set_actor_dof_properties(env_handle, actor_handle_playboard, self.dof_props_asset_knob)
             
             # Set knob colors
-            self.gym.set_rigid_body_color(env_handle, actor_handle_knob, 0, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.8039, 0.6667, 0.4902))
-            self.gym.set_rigid_body_color(env_handle, actor_handle_knob, 1, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.7, 0.7, 0.7))
-            self.gym.set_rigid_body_color(env_handle, actor_handle_knob, 2, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.9, 0.9, 0.9))
-            self.gym.set_rigid_body_color(env_handle, actor_handle_knob, 3, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.5, 0, 0))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 0, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.8039, 0.6667, 0.4902))
+            
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 1, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.7, 0.7, 0.7))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 2, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.9, 0.9, 0.9))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 3, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.5, 0, 0))
+            
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 4, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.7, 0.7, 0.7))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 5, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.9, 0.9, 0.9))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 6, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.5, 0, 0))
+            
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 7, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.7, 0.7, 0.7))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 8, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.9, 0.9, 0.9))
+            self.gym.set_rigid_body_color(env_handle, actor_handle_playboard, 9, gymapi.MESH_VISUAL_AND_COLLISION, gymapi.Vec3(0.5, 0, 0))
             
             self.envs.append(env_handle)
             self.actor_handles_g1.append(actor_handle_g1)
-            self.actor_handles_knob.append(actor_handle_knob)
+            self.actor_handles_knob.append(actor_handle_playboard)
         
         # self.print_g1_dof_index(self.gym, self.envs[0], self.actor_handles_g1[0])
         
@@ -299,6 +319,9 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         asset_file = os.path.basename(asset_path)
         
         asset_options_g1 = gymapi.AssetOptions()
+        asset_options_g1.vhacd_enabled = True
+        asset_options_g1.vhacd_params = gymapi.VhacdParams()
+        
         asset_options_g1.default_dof_drive_mode = self.cfg.asset_g1.default_dof_drive_mode
         asset_options_g1.collapse_fixed_joints = self.cfg.asset_g1.collapse_fixed_joints
         asset_options_g1.replace_cylinder_with_capsule = self.cfg.asset_g1.replace_cylinder_with_capsule
@@ -314,6 +337,13 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         asset_options_g1.disable_gravity = self.cfg.asset_g1.disable_gravity
         asset_options_g1.use_mesh_materials = self.cfg.asset_g1.use_mesh_materials
         
+        asset_options_g1.vhacd_params.resolution = 100000  # Increase resolution for better shape approximation
+        asset_options_g1.vhacd_params.max_convex_hulls = 20  # Limit the number of convex hulls
+        asset_options_g1.vhacd_params.concavity = 0.0025  # Lower concavity for better shape approximation
+        asset_options_g1.vhacd_params.plane_downsampling = 4  # 平面采样数，数值越低精度越高
+        asset_options_g1.vhacd_params.convex_hull_downsampling = 4  # 凸包采样数
+        asset_options_g1.vhacd_params.max_num_vertices_per_ch = 64  # 每个凸包的最大顶点数
+        
         g1_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options_g1)
         self.g1_asset = g1_asset
         
@@ -324,7 +354,7 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.rigid_shape_props_asset_g1 = self.gym.get_asset_rigid_shape_properties(g1_asset)
         
         for p in self.rigid_shape_props_asset_g1:
-            p.friction = self.cfg.asset_knob.friction
+            p.friction = self.cfg.asset_playboard.friction
         self.gym.set_asset_rigid_shape_properties(self.g1_asset, self.rigid_shape_props_asset_g1)
         
         # save body names from the g1 asset
@@ -377,21 +407,31 @@ class G1KnobRobot_traditional_playboard(G1Robot):
                 # self.dof_pos_limits[i, 1] = m + 0.5 * r * self.cfg.rewards.soft_dof_pos_limit
         return props
         
-    def _acquire_knob_asset_and_setup(self):
+    def _acquire_playboard_asset_and_setup(self):
         
         # Acquire Knob asset
-        asset_path = self.cfg.asset_knob.file.format(SDL_GYM_ROOT_DIR=SDL_GYM_ROOT_DIR)
+        asset_path = self.cfg.asset_playboard.file.format(SDL_GYM_ROOT_DIR=SDL_GYM_ROOT_DIR)
         asset_root = os.path.dirname(asset_path)
         asset_file = os.path.basename(asset_path)
         
         asset_options_knob = gymapi.AssetOptions()
-        asset_options_knob.default_dof_drive_mode = self.cfg.asset_knob.default_dof_drive_mode
-        asset_options_knob.collapse_fixed_joints = self.cfg.asset_knob.collapse_fixed_joints
-        asset_options_knob.replace_cylinder_with_capsule = self.cfg.asset_knob.replace_cylinder_with_capsule
-        asset_options_knob.flip_visual_attachments = self.cfg.asset_knob.flip_visual_attachments
-        asset_options_knob.fix_base_link = self.cfg.asset_knob.fix_base_link
-        asset_options_knob.armature = self.cfg.asset_knob.armature
-        asset_options_knob.disable_gravity = self.cfg.asset_knob.disable_gravity
+        asset_options_knob.vhacd_enabled = True
+        asset_options_knob.vhacd_params = gymapi.VhacdParams()
+        
+        asset_options_knob.default_dof_drive_mode = self.cfg.asset_playboard.default_dof_drive_mode
+        asset_options_knob.collapse_fixed_joints = self.cfg.asset_playboard.collapse_fixed_joints
+        asset_options_knob.replace_cylinder_with_capsule = self.cfg.asset_playboard.replace_cylinder_with_capsule
+        asset_options_knob.flip_visual_attachments = self.cfg.asset_playboard.flip_visual_attachments
+        asset_options_knob.fix_base_link = self.cfg.asset_playboard.fix_base_link
+        asset_options_knob.armature = self.cfg.asset_playboard.armature
+        asset_options_knob.disable_gravity = self.cfg.asset_playboard.disable_gravity
+        
+        asset_options_knob.vhacd_params.resolution = 100000  # Increase resolution for better shape approximation
+        asset_options_knob.vhacd_params.max_convex_hulls = 20  # Limit the number of convex hulls
+        asset_options_knob.vhacd_params.concavity = 0.0025  # Lower concavity for better shape approximation
+        asset_options_knob.vhacd_params.plane_downsampling = 4  # 平面采样数，数值越低精度越高
+        asset_options_knob.vhacd_params.convex_hull_downsampling = 4  # 凸包采样数
+        asset_options_knob.vhacd_params.max_num_vertices_per_ch = 64  # 每个凸包的最大顶点数
         
         knob_asset = self.gym.load_asset(self.sim, asset_root, asset_file, asset_options_knob)
         self.knob_asset = knob_asset
@@ -412,10 +452,10 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.num_bodies_knob = len(self.body_names_knob) # CONFUSE......
         self.num_dofs_knob = len(self.dof_names_knob) # CONFUSE......
         
-        knnb_base_init_state_list = self.cfg.init_state_knob.pos + self.cfg.init_state_knob.rot + self.cfg.init_state_knob.lin_vel + self.cfg.init_state_knob.ang_vel
-        self.base_init_state_knob = to_torch(knnb_base_init_state_list, device=self.device, requires_grad=False)
+        knob_base_init_state_list = self.cfg.init_state_playboard.pos + self.cfg.init_state_playboard.rot + self.cfg.init_state_playboard.lin_vel + self.cfg.init_state_playboard.ang_vel
+        self.base_init_state_playboard = to_torch(knob_base_init_state_list, device=self.device, requires_grad=False)
         self.start_pose_knob = gymapi.Transform()
-        self.start_pose_knob.p = gymapi.Vec3(*self.base_init_state_knob[:3])
+        self.start_pose_knob.p = gymapi.Vec3(*self.base_init_state_playboard[:3])
         
         self.actor_handles_knob = []   
 
@@ -618,7 +658,7 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         # step physics and render each frame
         self.render()    
         
-        # print(self.dof_pos_g1[0, self.right_shoulder_pitch_joint_handle: self.right_wrist_yaw_joint_handle+1])
+        print(self.dof_pos_g1[0, self.right_shoulder_pitch_joint_handle: self.right_wrist_yaw_joint_handle+1])
         # det_J = np.linalg.cond(self.right_hand_jacobian[0].cpu().numpy())
         # print(self.right_hand_jacobian[0].shape, det_J)
         # if abs(det_J) < 1e-6:
@@ -666,9 +706,9 @@ class G1KnobRobot_traditional_playboard(G1Robot):
             gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_center_keypoint_pose)
             
             # Fingertips Middle Keypoint target pose
-            self.global_2_fingertips_middle_keypoint_goal_pose.p = gymapi.Vec3(*self.global_2_fingertips_middle_keypoint_goal_pos[i].cpu().numpy())
-            self.global_2_fingertips_middle_keypoint_goal_pose.r = gymapi.Quat(*self.global_2_fingertips_middle_keypoint_goal_quat[i].cpu().numpy())
-            gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_2_fingertips_middle_keypoint_goal_pose)
+            # self.global_2_fingertips_middle_keypoint_goal_pose.p = gymapi.Vec3(*self.global_2_fingertips_middle_keypoint_goal_pos[i].cpu().numpy())
+            # self.global_2_fingertips_middle_keypoint_goal_pose.r = gymapi.Quat(*self.global_2_fingertips_middle_keypoint_goal_quat[i].cpu().numpy())
+            # gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_2_fingertips_middle_keypoint_goal_pose)
             
             # Knob center keypoint pose
             # gymutil.draw_lines(self.axes_geom, self.gym, self.viewer, self.envs[i], self.global_knob_center_keypoint_pose_turned)
@@ -735,8 +775,8 @@ class G1KnobRobot_traditional_playboard(G1Robot):
 
     def compute_all_useful_data_after_refresh(self):
         # knob pose
-        self.knob_pos = self.rigid_body_states[:, self.knob_handle][:, 0:3]
-        self.knob_rot = self.rigid_body_states[:, self.knob_handle][:, 3:7] 
+        self.knob_pos = self.rigid_body_states[:, self.knob_1_handle][:, 0:3]
+        self.knob_rot = self.rigid_body_states[:, self.knob_1_handle][:, 3:7] 
         
         # Compute knob hand reach pose
         self.hand_to_global_knob_hand_reach_pos = self.global_knob_hand_reach_pos - self.g1_right_hand_pos
@@ -774,16 +814,22 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         self.global_2_fingertips_middle_keypoint_pos = (self.right_hand_thumb_2_contact_link_pos + self.right_hand_index_1_contact_link_pos) / 2
         
         # To compute the fixed Transformation from knob center keypoint to fingertips middle keypoint(actually the hand palm link's original quat)
-        # global_2_fingertips_middle_keypoint_quat_conj = quat_conjugate(self.global_2_fingertips_middle_keypoint_quat)
-        # quat_knob_center_point_to_fingertips_middle_point = quat_mul(self.global_knob_center_keypoint_quat, global_2_fingertips_middle_keypoint_quat_conj)
-        # print(quat_knob_center_point_to_fingertips_middle_point)
+        self.global_2_fingertips_middle_keypoint_quat = self.g1_right_hand_quat
+        global_2_fingertips_middle_keypoint_quat_conj = quat_conjugate(self.global_2_fingertips_middle_keypoint_quat)
+        quat_knob_center_point_to_fingertips_middle_point = quat_mul(self.global_knob_center_keypoint_quat, global_2_fingertips_middle_keypoint_quat_conj)
+        print(quat_knob_center_point_to_fingertips_middle_point[0])
         
-        quat_knob_center_point_to_fingertips_middle_point = torch.tensor([6.1762e-04, -4.5180e-05, -8.3154e-01, 5.5546e-01], dtype=torch.float32, device=self.device).repeat(self.num_envs, 1)
+        #!!!!!!!!!!!!!!!!!!!!!!! TUNE !!!!!!!!!!!!!!!!!!!!!!!
+        # knob_1
+        quat_knob_center_point_to_fingertips_middle_point = torch.tensor([ -0.1139,  0.1494, -0.7825,  0.5936], dtype=torch.float32, device=self.device).repeat(self.num_envs, 1)
+        # knob_2
+        # quat_knob_center_point_to_fingertips_middle_point = torch.tensor([ -0.3371,  0.5981, -0.5766,  0.4429], dtype=torch.float32, device=self.device).repeat(self.num_envs, 1)
+        # knob_3
+        # quat_knob_center_point_to_fingertips_middle_point = torch.tensor([ -0.1172,  0.1554, -0.7799,  0.5949], dtype=torch.float32, device=self.device).repeat(self.num_envs, 1)
+        
         self.global_2_fingertips_middle_keypoint_quat = quat_mul(quat_knob_center_point_to_fingertips_middle_point, self.g1_right_hand_quat)
-        
 
-
-        # Compute hand relative pose to fingertips middle keypoint
+        # Compute hand relative pose to fingertips middle keypoint at the beginning of each episode
         keypoint_inv_quat, keypoint_inv_pos = tf_inverse(self.global_2_fingertips_middle_keypoint_quat, self.global_2_fingertips_middle_keypoint_pos)
         hand_relative_to_fingertips_quat_helper, hand_relative_to_fingertips_pos_helper = tf_combine(keypoint_inv_quat, keypoint_inv_pos, self.g1_right_hand_quat, self.g1_right_hand_pos)
         self.hand_relative_to_fingertips_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), hand_relative_to_fingertips_quat_helper, self.hand_relative_to_fingertips_quat)
@@ -792,77 +838,24 @@ class G1KnobRobot_traditional_playboard(G1Robot):
         
         # self.global_2_fingertips_middle_keypoint_goal_quat = quat_mul(quat_from_euler_xyz(*torch.tensor([np.pi / 100, 0, 0], dtype=torch.float32, device=self.device)), self.global_2_fingertips_middle_keypoint_quat)
         euler_angles = torch.tensor([np.pi / 500, 0, 0], dtype=torch.float32, device=self.device)
-        # euler_angles = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device)
+        # euler_angles = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device) # !!!!!!!!!!!!!!!!!!!!!!! TUNE !!!!!!!!!!!!!!!!!!!!!!!
 
-        # import ipdb; ipdb.set_trace()
-        # self.global_2_fingertips_middle_keypoint_goal_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), quat_mul(quat_from_euler_xyz(*euler_angles).repeat(self.num_envs, 1), self.global_2_fingertips_middle_keypoint_quat), self.global_2_fingertips_middle_keypoint_goal_quat)
         self.global_2_fingertips_middle_keypoint_goal_quat = quat_mul(quat_from_euler_xyz(*euler_angles).repeat(self.num_envs, 1), self.global_knob_center_keypoint_quat)
         self.global_knob_center_keypoint_quat = quat_mul(quat_from_euler_xyz(*euler_angles).repeat(self.num_envs, 1), self.global_knob_center_keypoint_quat)
         
+        # ONLY NEED FOR knob_2 / knob_3 SETTING INITIALLIZATION !!!!!!!!!!!!!!!!!!!!!!! TUNE !!!!!!!!!!!!!!!!!!!!!!!
+        # self.global_knob_center_keypoint_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), quat_mul(quat_from_euler_xyz(*torch.tensor([np.pi / 8, 0, 0], dtype=torch.float32, device=self.device)).repeat(self.num_envs, 1), self.global_knob_center_keypoint_quat), self.global_knob_center_keypoint_quat)
+        
         self.global_2_fingertips_middle_keypoint_goal_pos = self.global_knob_center_keypoint_pos
+        
         # compute target hand pose
         self.target_hand_quat_helper, self.target_hand_pos_helper = tf_combine(
             self.global_2_fingertips_middle_keypoint_goal_quat, self.global_2_fingertips_middle_keypoint_goal_pos, 
             self.hand_relative_to_fingertips_quat, self.hand_relative_to_fingertips_pos
         )        
-        # self.target_hand_quat = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), self.target_hand_quat_helper, self.target_hand_quat)
-        # self.target_hand_pos = torch.where(torch.unsqueeze(self.episode_length_buf == 0, dim=-1), self.target_hand_pos_helper, self.target_hand_pos)
         self.target_hand_quat = self.target_hand_quat_helper
         self.target_hand_pos = self.target_hand_pos_helper
-        
-        # Test
-        # self.global_2_fingertips_middle_keypoint_pos, self.global_2_fingertips_middle_keypoint_quat = self.compute_midpoint_and_quat(self.right_hand_thumb_2_contact_link_pos, self.right_hand_index_1_contact_link_pos)
-        
-        # # Compute hand relative pose to fingertips middle keypoint
-        # keypoint_inv_quat, keypoint_inv_pos = tf_inverse(self.global_2_fingertips_middle_keypoint_quat, self.global_2_fingertips_middle_keypoint_pos)
-        # hand_relative_quat, hand_relative_pos = tf_combine(keypoint_inv_quat, keypoint_inv_pos, self.g1_right_hand_quat, self.g1_right_hand_pos)
 
-        # # compute target hand pose
-        # self.target_hand_quat, self.target_hand_pos = tf_combine(
-        #     self.global_knob_center_keypoint_quat, self.global_knob_center_keypoint_pos, 
-        #     hand_relative_quat, hand_relative_pos
-        # )
-        # # compute target hand pose
-        # self.target_hand_quat, self.target_hand_pos = tf_combine(
-        #     self.global_knob_hand_reach_rot, self.global_knob_hand_reach_pos, 
-        #     hand_relative_quat, hand_relative_pos
-        # )
-
-    # def normalize(self, v, eps: float = 1e-9):
-    #     return v / v.norm(p=2, dim=-1, keepdim=True).clamp(min=eps)
-
-    # def quat_from_matrix(self, matrix):
-    #     """Convert a 3x3 rotation matrix to a quaternion."""
-    #     m = matrix
-    #     trace = m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2]
-    #     w = torch.sqrt(trace + 1.0) / 2.0
-    #     x = (m[..., 2, 1] - m[..., 1, 2]) / (4.0 * w)
-    #     y = (m[..., 0, 2] - m[..., 2, 0]) / (4.0 * w)
-    #     z = (m[..., 1, 0] - m[..., 0, 1]) / (4.0 * w)
-    #     return torch.stack([x, y, z, w], dim=-1)
-
-    # def compute_midpoint_and_quat(self, point1, point2):
-    #     # compute the midpoint
-    #     mid_pos = (point1 + point2) / 2.0
-
-    #     # compute the direction
-    #     direction = self.normalize(point2 - point1)  # z axis
-
-    #     # choose a world y axis
-    #     world_y = torch.tensor([0.0, 1.0, 0.0], device=point1.device).expand_as(direction)
-    #     x_axis = normalize(torch.cross(world_y, direction, dim=-1))
-
-    #     # compute the y axis
-    #     y_axis = torch.cross(direction, x_axis, dim=-1)
-
-    #     # create the rotation matrix
-    #     rotation_matrix = torch.stack([x_axis, y_axis, direction], dim=-1)  # (3,3)
-
-    #     # convert the rotation matrix to a quaternion
-    #     mid_quat = self.quat_from_matrix(rotation_matrix)
-
-    #     return mid_pos, mid_quat
-    
         
     def check_termination(self):
         """ Check if environments need to be reset

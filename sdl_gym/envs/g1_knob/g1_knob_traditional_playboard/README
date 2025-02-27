@@ -1,5 +1,4 @@
-Using the g1_lighter_with_hand_with_keypoints.urdf.
+For every knob env, do the following:
 
-This is the policy which starts using the contact info.
-
-It works, but still involves reward hacking, needs to be improved.
+1. search the 'tune', and change these settings
+2. search the 'knob_i', and change these settings

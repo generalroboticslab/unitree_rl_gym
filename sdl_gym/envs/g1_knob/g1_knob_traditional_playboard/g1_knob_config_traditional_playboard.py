@@ -42,38 +42,67 @@ class G1KnobCfg_traditional_playboard( G1RobotCfg ):
         'left_hand_thumb_0_joint' : 0.,   # index: 26
         'left_hand_thumb_1_joint' : 0.,   # index: 27
         'left_hand_thumb_2_joint' : 0.,   # index: 28
-
-        # 7 DOFs of right arm
-        # 'right_shoulder_pitch_joint' : -8.5795e-01,  # index: 29
-        # 'right_shoulder_roll_joint'   :  8.7773e-02,  # index: 30
-        # 'right_shoulder_yaw_joint'    : -4.8131e-01,  # index: 31
-        # # 'right_shoulder_yaw_joint'    : -2.62,  # index: 31
-        # 'right_elbow_joint'           :  7.1448e-01,  # index: 32
-        # 'right_wrist_roll_joint'      : -3.1350e-01,  # index: 33
-        # 'right_wrist_pitch_joint'     :  4.9403e-02,  # index: 34
-        # 'right_wrist_yaw_joint'       : -1.0966e+00,  # index: 35
         
-        'right_shoulder_pitch_joint' : -8.067e-01,  # index: 29
-        'right_shoulder_roll_joint'   :  1.052e-01,  # index: 30
-        'right_shoulder_yaw_joint'    : -4.150e-01,  # index: 31
-        'right_elbow_joint'           :  5.108e-01,  # index: 32
-        'right_wrist_roll_joint'      : -2.823e-01,  # index: 33
-        'right_wrist_pitch_joint'     :  2.058e-01,  # index: 34
-        'right_wrist_yaw_joint'       : -1.0864e+00,  # index: 35
+        
+        # first knob
+        'right_shoulder_pitch_joint' : -0.9696,  # index: 29
+        'right_shoulder_roll_joint'   :  0.1854,  # index: 30
+        'right_shoulder_yaw_joint'    :  0.1899,  # index: 31
+        'right_elbow_joint'           :  0.2105,  # index: 32
+        'right_wrist_roll_joint'      : -0.2777,  # index: 33
+        'right_wrist_pitch_joint'     :  0.8555,  # index: 34
+        'right_wrist_yaw_joint'       : -1.5871,  # index: 35
 
-        # 7 DOFs of right hand
+        # first knob
         'right_hand_index_0_joint'    :  1.19,  # index: 36 
-        # 'right_hand_index_1_joint'    :  0.45,  # index: 37 
-        'right_hand_index_1_joint'    :  0.45,  # index: 37 
+        'right_hand_index_1_joint'    :  0.65,  # index: 37 
         'right_hand_middle_0_joint'   :  1.4922e+00,  # index: 38
         'right_hand_middle_1_joint'   :  1.40,  # index: 39
         'right_hand_thumb_0_joint'    :  -0.49,  # index: 40 
         'right_hand_thumb_1_joint'    :  0.0,  # index: 41 
-        # 'right_hand_thumb_2_joint'    : -0.65,  # index: 42 
-        'right_hand_thumb_2_joint'    : -0.85,  # index: 42 
+        'right_hand_thumb_2_joint'    : -0.75,  # index: 42 
+        
+        # # second knob
+        # 'right_shoulder_pitch_joint' : -1.0499,  # index: 29
+        # 'right_shoulder_roll_joint'   : -0.9756,  # index: 30
+        # 'right_shoulder_yaw_joint'    :  1.0742,  # index: 31
+        # 'right_elbow_joint'           : -0.0560,  # index: 32
+        # 'right_wrist_roll_joint'      : -0.0280,  # index: 33
+        # 'right_wrist_pitch_joint'     :  0.9432,  # index: 34
+        # 'right_wrist_yaw_joint'       : -1.3332,  # index: 35
+        
+        # # second knob
+        # 'right_hand_index_0_joint'    :  1.36,  # index: 36 
+        # 'right_hand_index_1_joint'    :  0.65,  # index: 37 
+        # 'right_hand_middle_0_joint'   :  1.4922e+00,  # index: 38
+        # 'right_hand_middle_1_joint'   :  1.40,  # index: 39
+        # 'right_hand_thumb_0_joint'    :  -0.49,  # index: 40 
+        # 'right_hand_thumb_1_joint'    :  -0.20,  # index: 41 
+        # 'right_hand_thumb_2_joint'    : -0.50,  # index: 42 
+        
+        # # third knob
+        # 'right_shoulder_pitch_joint' : -0.7564,  # index: 29
+        # 'right_shoulder_roll_joint'   : -0.6700,  # index: 30
+        # 'right_shoulder_yaw_joint'    :  0.1712,  # index: 31
+        # 'right_elbow_joint'           :  0.1120,  # index: 32
+        # 'right_wrist_roll_joint'      :  0.3504,  # index: 33
+        # 'right_wrist_pitch_joint'     :  0.5944,  # index: 34
+        # 'right_wrist_yaw_joint'       : -1.3633,  # index: 35
+
+
+        
+        # # third knob
+        # 'right_hand_index_0_joint'    :  1.19,  # index: 36 
+        # 'right_hand_index_1_joint'    :  0.45,  # index: 37 
+        # 'right_hand_middle_0_joint'   :  1.4922e+00,  # index: 38
+        # 'right_hand_middle_1_joint'   :  1.40,  # index: 39
+        # 'right_hand_thumb_0_joint'    :  -0.49,  # index: 40 
+        # 'right_hand_thumb_1_joint'    :  0.0,  # index: 41 
+        # 'right_hand_thumb_2_joint'    : -0.55,  # index: 42 
+        
         }
         
-    class init_state_knob( G1RobotCfg.init_state_knob ):
+    class init_state_playboard( G1RobotCfg.init_state_playboard ):
         pass
         
     
@@ -137,14 +166,14 @@ class G1KnobCfg_traditional_playboard( G1RobotCfg ):
         terminate_after_contacts_on = ["pelvis"]
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
-        use_mesh_materials = True
+        use_mesh_materials = False
         default_dof_drive_mode = 1 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
         friction = 10.0
         
-    class asset_knob (G1RobotCfg.asset_knob):
+    class asset_playboard (G1RobotCfg.asset_playboard):
         # file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/knob/knob.urdf'
         file = '{SDL_GYM_ROOT_DIR}/resources/task_assets/playboard/playboard.urdf'
-        name = 'knob'
+        name = 'playboard'
         default_dof_drive_mode = 0
         friction = 10.0
   

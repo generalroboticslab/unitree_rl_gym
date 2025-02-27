@@ -6,15 +6,15 @@ class G1RobotCfg(BaseConfig):
         num_envs = 4096
         env_spacing = 5.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
-        episode_length_s = 3 # episode length in seconds
+        episode_length_s = 4 # episode length in seconds
         test = False
         
         dataPublisher_enable = True
         target_url = 'udp://localhost:9876'
         data_root_label = 'sim'
         
-        env_lower = gymapi.Vec3(-1.5, -1.5, 0.)
-        env_upper = gymapi.Vec3(1.5, 1.5, 1.5)
+        env_lower = gymapi.Vec3(-3, -3, 0.)
+        env_upper = gymapi.Vec3(3, 3, 3)
         
         if_log_wandb = True
 
@@ -54,8 +54,8 @@ class G1RobotCfg(BaseConfig):
             "joint_a": 0., 
             "joint_b": 0.}
         
-    class init_state_knob:
-        pos = [0.0, 0.1, 1.0] # x,y,z [m]
+    class init_state_playboard:
+        pos = [0.05, -0.10, 0.75] # x,y,z [m] !!!!!!!!!!!!!!!!!!!!!!! TUNE !!!!!!!!!!!!!!!!!!!!!!!
         rot = [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -94,9 +94,9 @@ class G1RobotCfg(BaseConfig):
         armature = 0.
         thickness = 0.01
     
-    class asset_knob:
+    class asset_playboard:
         file = ""
-        name = "g1_knob"  # actor name
+        name = "g1_playboard"  # actor name
         disable_gravity = False
         collapse_fixed_joints = False # merge bodies connected by fixed joints. Specific fixed joints can be kept by adding " <... dont_collapse="true">
         fix_base_link = True # fixe the base of the robot
