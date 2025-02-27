@@ -41,6 +41,10 @@ from sdl_gym.envs.g1_knob.g1_knob_traditional.g1_knob_env_traditional import G1K
 from sdl_gym.envs.g1_knob.g1_knob_traditional_playboard.g1_knob_config_traditional_playboard import G1KnobCfg_traditional_playboard, G1KnobCfgPPO_traditional_playboard
 from sdl_gym.envs.g1_knob.g1_knob_traditional_playboard.g1_knob_env_traditional_playboard import G1KnobRobot_traditional_playboard
 
+# rl playboard
+from sdl_gym.envs.g1_knob.g1_knob_rl_playboard.g1_knob_config_rl_playboard import G1KnobCfg_rl_playboard, G1KnobCfgPPO_rl_playboard
+from sdl_gym.envs.g1_knob.g1_knob_rl_playboard.g1_knob_env_rl_playboard import G1KnobRobot_rl_playboard
+
 # debug
 from sdl_gym.envs.g1_knob.g1_knob_debug.g1_knob_config_debug import G1KnobCfg_debug, G1KnobCfgPPO_debug
 from sdl_gym.envs.g1_knob.g1_knob_debug.g1_knob_env_debug import G1KnobRobot_debug
@@ -55,6 +59,7 @@ task_registry.register( "g1_knob_7", G1KnobRobot_7, G1KnobCfg_7(), G1KnobCfgPPO_
 task_registry.register( "g1_knob_traditional", G1KnobRobot_traditional, G1KnobCfg_traditional(), G1KnobCfgPPO_traditional())
 task_registry.register( "g1_knob_debug", G1KnobRobot_debug, G1KnobCfg_debug(), G1KnobCfgPPO_debug())
 task_registry.register( "g1_knob_traditional_playboard", G1KnobRobot_traditional_playboard, G1KnobCfg_traditional_playboard(), G1KnobCfgPPO_traditional_playboard())
+task_registry.register( "g1_knob_rl_playboard", G1KnobRobot_rl_playboard, G1KnobCfg_rl_playboard(), G1KnobCfgPPO_rl_playboard())
 
 
 
